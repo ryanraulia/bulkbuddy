@@ -21,11 +21,14 @@ export default function Header() {
             <Link to="/" className="hover:text-blue-200 transition-colors">
               Home
             </Link>
-            <Link to="/generate" className="hover:text-blue-200 transition-colors">
-              Generate
+            <Link to="/Calculators" className="hover:text-blue-200 transition-colors">
+              Calculators
             </Link>
-            <Link to="/saved" className="hover:text-blue-200 transition-colors">
-              Saved Plans
+            <Link to="/Contact" className="hover:text-blue-200 transition-colors">
+              Contact
+            </Link>
+            <Link to="/Recipes" className="hover:text-blue-200 transition-colors">
+              Recipes
             </Link>
           </div>
 
