@@ -1,14 +1,16 @@
 import React from 'react'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Home from './pages/Home';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Home />,
+  },
+]);
 
 const App = () => {
-  return (
-    <div>
-        <div className= 'container bg-red-500'>
-            <h1 className='text-8xl text-gray-500' >Hello Welcome to BulkBuddy!</h1>
-        </div>
+  return <RouterProvider router={router} />;
+};
 
-    </div>
-  )
-}
-
-export default App
+export default App;
