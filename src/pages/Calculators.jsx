@@ -1,17 +1,16 @@
-// src/pages/Home/Home.jsx
+// src/pages/Calculators.jsx
 import React from 'react';
-import Layout from "../components/layout/Layout.jsx";
+import Layout from '../components/layout/Layout';
+import CalorieSurplusCalculator from '../components/calculator/CalorieSurplusCalculator';
 
 export default function Calculators() {
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="border-4 border-gray-300 rounded-lg p-8 text-center max-w-xl w-full">
-          <h1 className="text-3xl font-bold mb-4 max-w-xl mx-auto">Calculator</h1>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Welcome to Bulk Buddy. Calculator time
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-center mb-6">Calculators</h1>
+        
+        {/* Calorie Surplus Calculator */}
+        <CalorieSurplusCalculator />
       </div>
     </Layout>
   );
