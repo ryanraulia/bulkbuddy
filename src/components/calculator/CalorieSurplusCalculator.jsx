@@ -1,4 +1,3 @@
-// src/components/CalorieSurplusCalculator.jsx
 import React, { useState } from 'react';
 
 export default function CalorieSurplusCalculator() {
@@ -8,8 +7,11 @@ export default function CalorieSurplusCalculator() {
   const [gender, setGender] = useState('male');
   const [activityLevel, setActivityLevel] = useState('1.2'); // Default: Sedentary
   const [calories, setCalories] = useState(null);
+  const [protein, setProtein] = useState(null);
+  const [fats, setFats] = useState(null);
+  const [carbs, setCarbs] = useState(null);
 
-  const calculateCalories = () => {
+  const calculateCaloriesAndMacros = () => {
     if (!age || !weight || !height) {
       alert("Please fill out all fields.");
       return;
@@ -34,7 +36,20 @@ export default function CalorieSurplusCalculator() {
     // Add surplus (e.g., 500 kcal for weight gain)
     const surplusCalories = maintenanceCalories + 500;
 
+    // Set calorie surplus state
     setCalories(surplusCalories.toFixed(2));
+
+    // Macronutrient Calculations
+    // Protein: 2 grams per kg of body weight
+    const proteinAmount = w * 2;
+    // Fats: 25% of total calories
+    const fatAmount = (surplusCalories * 0.25) / 9; // 9 calories per gram of fat
+    // Carbs: Remaining calories
+    const carbAmount = (surplusCalories - (proteinAmount * 4 + fatAmount * 9)) / 4; // 4 calories per gram of carbs
+
+    setProtein(proteinAmount.toFixed(2));
+    setFats(fatAmount.toFixed(2));
+    setCarbs(carbAmount.toFixed(2));
   };
 
   return (
@@ -75,14 +90,17 @@ export default function CalorieSurplusCalculator() {
         </select>
       </div>
 
-      <button onClick={calculateCalories} className="w-full bg-blue-500 text-white py-2 rounded mt-4 hover:bg-blue-600">
-        Calculate Surplus Calories
+      <button onClick={calculateCaloriesAndMacros} className="w-full bg-blue-500 text-white py-2 rounded mt-4 hover:bg-blue-600">
+        Calculate Surplus Calories & Macros
       </button>
 
       {calories && (
         <div className="mt-4 p-4 bg-green-100 rounded text-center">
           <p className="font-semibold">To gain weight, aim for:</p>
           <p className="text-2xl font-bold">{calories} kcal/day</p>
+          <p className="mt-2">Protein: {protein} grams</p>
+          <p className="mt-2">Fats: {fats} grams</p>
+          <p className="mt-2">Carbs: {carbs} grams</p>
         </div>
       )}
     </div>

@@ -1,16 +1,27 @@
-// src/pages/Home/Home.jsx
-import React from 'react';
-import Layout from "../components/layout/Layout.jsx";
+// src/pages/Recipes.jsx
+import React, { useState } from 'react';
+import Layout from "../components/layout/Layout";
+import RecipeCard from "../components/recipe/RecipeCard";
 
 export default function Recipes() {
+  // Temporary static recipes (Later, replace with API data)
+  const [recipes, setRecipes] = useState([
+    { id: 1, name: "Chicken & Rice", image: "/assets/chicken-rice.jpg" },
+    { id: 2, name: "Beef Stir Fry", image: "/assets/beef-stir-fry.jpg" },
+    { id: 3, name: "Salmon & Quinoa", image: "/assets/salmon-quinoa.jpg" },
+    { id: 4, name: "Pasta & Meatballs", image: "/assets/pasta-meatballs.jpg" }
+  ]);
+
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="border-4 border-gray-300 rounded-lg p-8 text-center max-w-xl w-full">
-          <h1 className="text-3xl font-bold mb-4 max-w-xl mx-auto">Recipes</h1>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Welcome to Bulk Buddy. Recipes time
-          </p>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-center mb-6">Recipes</h1>
+
+        {/* Recipe Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {recipes.map((recipe) => (
+            <RecipeCard key={recipe.id} recipe={recipe} />
+          ))}
         </div>
       </div>
     </Layout>
