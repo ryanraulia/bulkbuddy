@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const qs = require('qs');
 require('dotenv').config();
 
 const app = express();
@@ -11,9 +12,78 @@ app.use(express.json());
 
 const EDAMAM_APP_ID = process.env.REACT_APP_EDAMAM_APP_ID;
 const EDAMAM_APP_KEY = process.env.REACT_APP_EDAMAM_APP_KEY;
+const FDC_API_KEY = process.env.REACT_APP_FDC_API_KEY;
+
 
 console.log("EDAMAM_APP_ID:", EDAMAM_APP_ID);
 console.log("EDAMAM_APP_KEY:", EDAMAM_APP_KEY);
+console.log("FDC_API_KEY:", FDC_API_KEY);
+console.log("FDC_API_KEY:", process.env.REACT_APP_FDC_API_KEY);
+
+
+// Add near other API endpoints
+
+app.get('/api/food', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+
+    const response = await axios.get(
+      `https://api.nal.usda.gov/fdc/v1/foods/search`,
+      {
+        params: {
+          api_key: FDC_API_KEY,
+          query: q,
+          dataType: "Survey (FNDDS)", // Remove the array brackets and encode properly
+          pageSize: 5
+        },
+        paramsSerializer: (params) => {
+          // Use qs library to properly serialize the params
+          return qs.stringify(params, { arrayFormat: 'repeat' });
+        }
+      }
+    );
+
+    const simplifiedResults = response.data.foods.map(food => {
+      const nutrients = {};
+      food.foodNutrients.forEach(nutrient => {
+        switch(nutrient.nutrientId) {
+          case 1008: // Calories
+            nutrients.calories = nutrient.value;
+            break;
+          case 1003: // Protein
+            nutrients.protein = nutrient.value;
+            break;
+          case 1004: // Fat
+            nutrients.fat = nutrient.value;
+            break;
+          case 1005: // Carbs
+            nutrients.carbs = nutrient.value;
+            break;
+        }
+      });
+      
+      return {
+        fdcId: food.fdcId,
+        description: food.description,
+        ...nutrients
+      };
+    });
+
+    res.json(simplifiedResults);
+  } catch (error) {
+    console.error("Error in /api/food:", error.response?.data || error.message);
+    res.status(500).json({
+      error: 'Error fetching food data',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
+
+
 
 app.get('/api/mealplan', async (req, res) => {
   try {
