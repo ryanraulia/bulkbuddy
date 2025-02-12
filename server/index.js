@@ -1,4 +1,3 @@
-// server/index.js
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -10,8 +9,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const EDAMAM_APP_ID = process.env.EDAMAM_APP_ID;
-const EDAMAM_APP_KEY = process.env.EDAMAM_APP_KEY;
+const EDAMAM_APP_ID = process.env.REACT_APP_EDAMAM_APP_ID;
+const EDAMAM_APP_KEY = process.env.REACT_APP_EDAMAM_APP_KEY;
 
 console.log("EDAMAM_APP_ID:", EDAMAM_APP_ID);
 console.log("EDAMAM_APP_KEY:", EDAMAM_APP_KEY);
@@ -24,64 +23,44 @@ app.get('/api/mealplan', async (req, res) => {
     }
     const tc = parseInt(targetCalories, 10);
 
-    // For testing, split calories roughly among the three meals.
-    // (These are looser constraints than before.)
-    const breakfastMin = Math.round(tc * 0.25 * 0.8);
-    const breakfastMax = Math.round(tc * 0.25 * 1.2);
-    const lunchMin = Math.round(tc * 0.35 * 0.8);
-    const lunchMax = Math.round(tc * 0.35 * 1.2);
-    const dinnerMin = Math.round(tc * 0.40 * 0.8);
-    const dinnerMax = Math.round(tc * 0.40 * 1.2);
+    const breakfastTarget = Math.round(tc * 0.25);
+    const lunchTarget = Math.round(tc * 0.35);
+    const dinnerTarget = Math.round(tc * 0.40);
+
+    const variance = 0.10;
+    
+    const breakfastMin = Math.round(breakfastTarget * (1 - variance));
+    const breakfastMax = Math.round(breakfastTarget * (1 + variance));
+    const lunchMin = Math.round(lunchTarget * (1 - variance));
+    const lunchMax = Math.round(lunchTarget * (1 + variance));
+    const dinnerMin = Math.round(dinnerTarget * (1 - variance));
+    const dinnerMax = Math.round(dinnerTarget * (1 + variance));
 
     const edamamUrl = `https://api.edamam.com/api/meal-planner/v1/${EDAMAM_APP_ID}/select?app_id=${EDAMAM_APP_ID}&app_key=${EDAMAM_APP_KEY}`;
 
-    // A simplified request body without dish filters or an overall "fit"
     const requestBody = {
-      size: 1, // one-day meal plan
+      size: 1,
       plan: {
         sections: {
-          "Breakfast": {
-            accept: {
-              all: [
-                { meal: ["breakfast"] }
-              ]
-            },
-            fit: {
-              ENERC_KCAL: {
-                min: breakfastMin,
-                max: breakfastMax
-              }
-            }
-          },
-          "Lunch": {
-            accept: {
-              all: [
-                { meal: ["lunch/dinner"] }
-              ]
-            },
-            fit: {
-              ENERC_KCAL: {
-                min: lunchMin,
-                max: lunchMax
-              }
-            }
-          },
-          "Dinner": {
-            accept: {
-              all: [
-                { meal: ["lunch/dinner"] }
-              ]
-            },
-            fit: {
-              ENERC_KCAL: {
-                min: dinnerMin,
-                max: dinnerMax
-              }
-            }
+          "Breakfast": { accept: { all: [{ meal: ["breakfast"] }] }, fit: { ENERC_KCAL: { min: breakfastMin, max: breakfastMax } } },
+          "Lunch": { accept: { all: [{ meal: ["lunch/dinner"] }] }, fit: { ENERC_KCAL: { min: lunchMin, max: lunchMax } } },
+          "Dinner": { accept: { all: [{ meal: ["lunch/dinner"] }] }, fit: { ENERC_KCAL: { min: dinnerMin, max: dinnerMax } } }
+        },
+        fit: {
+          ENERC_KCAL: {
+            min: Math.round(tc * 0.95),
+            max: Math.round(tc * 1.05)
           }
         }
       }
     };
+
+    console.log("Calorie targets:", {
+      total: tc,
+      breakfast: { target: breakfastTarget, min: breakfastMin, max: breakfastMax },
+      lunch: { target: lunchTarget, min: lunchMin, max: lunchMax },
+      dinner: { target: dinnerTarget, min: dinnerMin, max: dinnerMax }
+    });
 
     console.log("Requesting Edamam API at:", edamamUrl);
     console.log("Request Body:", JSON.stringify(requestBody, null, 2));
@@ -89,17 +68,65 @@ app.get('/api/mealplan', async (req, res) => {
     const response = await axios.post(edamamUrl, requestBody, {
       headers: {
         "Content-Type": "application/json",
-        "Edamam-Account-User": "testuser" // Ensure this is valid per Edamam's requirements.
+        "Edamam-Account-User": "testuser"
       }
     });
 
-    // Log the entire response for debugging.
-    console.log("Edamam response:", response.data);
-    res.json(response.data);
+    const responseWithTargets = {
+      ...response.data,
+      calorieTargets: {
+        total: tc,
+        breakfast: breakfastTarget,
+        lunch: lunchTarget,
+        dinner: dinnerTarget
+      }
+    };
+
+    res.json(responseWithTargets);
   } catch (error) {
     console.error("Error in /api/mealplan:", error.response?.data || error.message);
     res.status(500).json({
       error: 'Error fetching meal plan',
+      details: error.response?.data || error.message
+    });
+  }
+});
+
+app.get('/api/lookup', async (req, res) => {
+  const { recipeURI } = req.query;
+  if (!recipeURI) {
+    return res.status(400).json({ error: 'recipeURI parameter is required' });
+  }
+  
+  const recipeId = recipeURI.split('#recipe_')[1];
+  if (!recipeId) {
+    return res.status(400).json({ error: 'Invalid recipe URI format' });
+  }
+  
+  const lookupUrl = `https://api.edamam.com/api/recipes/v2/${recipeId}?type=public&app_id=${EDAMAM_APP_ID}&app_key=${EDAMAM_APP_KEY}`;
+  
+  try {
+    console.log('Requesting recipe details from Edamam:', lookupUrl);
+    const response = await axios.get(lookupUrl, {
+      headers: {
+        "Accept": "application/json",
+        "Edamam-Account-User": "testuser"
+      }
+    });
+    
+    console.log('Received response from Edamam:', response.status);
+    console.log('Response data:', JSON.stringify(response.data, null, 2));
+    
+    const recipe = response.data.recipe;
+    if (!recipe) {
+      throw new Error('No recipe data in response');
+    }
+    
+    res.json([recipe]);
+  } catch (error) {
+    console.error("Error in /api/lookup:", error.response?.data || error.message);
+    res.status(500).json({
+      error: 'Error fetching recipe details',
       details: error.response?.data || error.message
     });
   }
