@@ -1,4 +1,3 @@
-// src/pages/Recipes.jsx
 import React, { useState } from 'react';
 import Layout from "../components/layout/Layout";
 import RecipeCard from "../components/recipe/RecipeCard";
@@ -14,14 +13,16 @@ export default function Recipes() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-6">Recipes</h1>
+      <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-8">Recipes</h1>
 
-        {/* Recipe Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {recipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
-          ))}
+          {/* Recipe Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {recipes.map((recipe) => (
+              <RecipeCard key={recipe.id} recipe={recipe} />
+            ))}
+          </div>
         </div>
       </div>
     </Layout>

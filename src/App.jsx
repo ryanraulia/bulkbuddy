@@ -6,6 +6,8 @@ import MealPlan from './pages/MealPlan.jsx';
 import Recipes from './pages/Recipes.jsx';
 import Calculators from './pages/Calculators.jsx';
 import Contact from './pages/Contact.jsx';
+import Tips from './pages/Tips.jsx';
+
 
 function App() {
   return (
@@ -15,6 +17,7 @@ function App() {
         <Route path="/mealplan" element={<MealPlan />} />
         <Route path="/recipes" element={<Recipes />} />
         <Route path="/calculators" element={<Calculators />} />
+        <Route path="/tips" element={<Tips />} />
         <Route path="/contact" element={<Contact />} />
       </Routes>
     </Router>

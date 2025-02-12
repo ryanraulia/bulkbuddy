@@ -1,9 +1,8 @@
-// src/components/buttons/SignUpButton.jsx
 import React from 'react';
 
 export default function SignUpButton() {
   return (
-    <button className="bg-black hover:bg-gray-800 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200">
+    <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-3 rounded-lg transition-colors duration-200">
       Sign Up
     </button>
   );
