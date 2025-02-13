@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const nodemailer = require('nodemailer');
 const cors = require('cors');
 const qs = require('qs');
 require('dotenv').config();
@@ -14,6 +15,29 @@ const EDAMAM_APP_ID = process.env.REACT_APP_EDAMAM_APP_ID;
 const EDAMAM_APP_KEY = process.env.REACT_APP_EDAMAM_APP_KEY;
 const FDC_API_KEY = process.env.REACT_APP_FDC_API_KEY;
 
+// Update the transporter configuration in server/index.js
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // Use TLS
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_APP_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false // Accept self-signed certificates
+  }
+});
+
+// Add a verification check when the server starts
+transporter.verify(function(error, success) {
+  if (error) {
+    console.error('SMTP connection error:', error);
+  } else {
+    console.log('SMTP server is ready to take our messages');
+  }
+});
+
 
 console.log("EDAMAM_APP_ID:", EDAMAM_APP_ID);
 console.log("EDAMAM_APP_KEY:", EDAMAM_APP_KEY);
@@ -22,6 +46,64 @@ console.log("FDC_API_KEY:", process.env.REACT_APP_FDC_API_KEY);
 
 
 // Add near other API endpoints
+
+// Add this after your transporter configuration to verify env variables are loaded
+console.log('Email configuration:', {
+  user: process.env.EMAIL_USER ? 'Set' : 'Not set',
+  appPassword: process.env.EMAIL_APP_PASSWORD ? 'Set' : 'Not set'
+});
+
+app.post('/api/contact', async (req, res) => {
+  const { name, email, message } = req.body;
+  
+  console.log('Received contact form submission:', { name, email, message });
+  
+  try {
+    const mailOptions = {
+      from: {
+        name: 'BulkBuddy Contact Form',
+        address: process.env.EMAIL_USER
+      },
+      to: process.env.EMAIL_USER,
+      subject: `New Contact Form Submission from ${name}`,
+      text: `
+Name: ${name}
+Email: ${email}
+Message: ${message}
+      `,
+      html: `
+<h2>New Contact Form Submission</h2>
+<p><strong>Name:</strong> ${name}</p>
+<p><strong>Email:</strong> ${email}</p>
+<p><strong>Message:</strong></p>
+<p>${message}</p>
+      `
+    };
+
+    console.log('Attempting to send email with options:', mailOptions);
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully:', info);
+      res.json({ success: true, message: 'Email sent successfully' });
+    } catch (emailError) {
+      console.error('Detailed email error:', {
+        error: emailError,
+        code: emailError.code,
+        command: emailError.command,
+        response: emailError.response
+      });
+      throw emailError;
+    }
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send email',
+      error: error.message 
+    });
+  }
+});
 
 app.get('/api/food', async (req, res) => {
   try {

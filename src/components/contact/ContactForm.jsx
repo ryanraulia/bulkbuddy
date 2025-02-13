@@ -1,3 +1,4 @@
+// components/contact/ContactForm.jsx
 import React, { useState } from 'react';
 
 export default function ContactForm() {
@@ -5,19 +6,39 @@ export default function ContactForm() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setStatus('');
 
-    // You can integrate form submission logic here, such as sending data to an API or email service
+    try {
+      const response = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, message }),
+      });
 
-    // Example status message after form submission
-    setStatus('Your message has been sent successfully!');
-    
-    // Reset form fields
-    setName('');
-    setEmail('');
-    setMessage('');
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus('Your message has been sent successfully!');
+        // Reset form fields
+        setName('');
+        setEmail('');
+        setMessage('');
+      } else {
+        setStatus('Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setStatus('An error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -31,6 +52,7 @@ export default function ContactForm() {
           value={name} 
           onChange={(e) => setName(e.target.value)} 
           required 
+          disabled={isSubmitting}
         />
       </div>
       
@@ -43,6 +65,7 @@ export default function ContactForm() {
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
           required 
+          disabled={isSubmitting}
         />
       </div>
       
@@ -55,16 +78,22 @@ export default function ContactForm() {
           value={message} 
           onChange={(e) => setMessage(e.target.value)} 
           required 
+          disabled={isSubmitting}
         />
       </div>
 
-      {status && <p className="text-green-500 text-center">{status}</p>}
+      {status && (
+        <p className={`text-center ${status.includes('successfully') ? 'text-green-500' : 'text-red-500'}`}>
+          {status}
+        </p>
+      )}
 
       <button 
         type="submit" 
-        className="w-full p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+        className="w-full p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 disabled:opacity-50"
+        disabled={isSubmitting}
       >
-        Send Message
+        {isSubmitting ? 'Sending...' : 'Send Message'}
       </button>
     </form>
   );
