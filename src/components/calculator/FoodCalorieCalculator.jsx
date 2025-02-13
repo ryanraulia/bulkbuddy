@@ -38,8 +38,9 @@ const FoodCalorieCalculator = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4">Food Nutrition Calculator</h2>
+<   div className="max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+      <h2 className="text-2xl font-bold text-yellow-400 mb-2">Food Nutrition Calculator</h2>
+      <p className="text-sm text-gray-400 mb-4">Please enter food and be specific (e.g., Chicken Breast)</p>
       
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="flex gap-2">

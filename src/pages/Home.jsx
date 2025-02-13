@@ -29,7 +29,7 @@ export default function Home() {
           </div>
           <h1 className="text-4xl font-extrabold mb-4 text-yellow-400">Welcome to BulkBuddy</h1>
           <p className="text-gray-300 text-lg">
-            Gain muscle the right way! Use our **Meal Plan Generator** to kickstart your weight gain journey.
+            Gain muscle the right way! Use our Meal Plan Generator to start your bulking journey.
           </p>
 
           {/* Meal Plan Form */}
