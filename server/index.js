@@ -1,9 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
+const mysql = require("mysql2");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const cors = require('cors');
 const qs = require('qs');
 require('dotenv').config();
+const cookieParser = require("cookie-parser");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +18,27 @@ app.use(express.json());
 const EDAMAM_APP_ID = process.env.REACT_APP_EDAMAM_APP_ID;
 const EDAMAM_APP_KEY = process.env.REACT_APP_EDAMAM_APP_KEY;
 const FDC_API_KEY = process.env.REACT_APP_FDC_API_KEY;
+
+
+
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10, 
+  queueLimit: 0
+});
+
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error("Database connection failed:", err);
+  } else {
+    console.log("Connected to MySQL");
+    connection.release();
+  }
+});
 
 // Update the transporter configuration in server/index.js
 const transporter = nodemailer.createTransport({
