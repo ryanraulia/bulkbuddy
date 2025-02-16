@@ -12,7 +12,7 @@ export default function LoginForm() {
         <label className="block text-gray-700">Password</label>
         <input type="password" className="w-full px-3 py-2 border rounded-lg" />
       </div>
-      <button type="submit" className="w-full bg-yellow-500 text-white py-2 rounded-lg">
+      <button type="submit" className="w-full bg-yellow-500 text-amber-300 py-2 rounded-lg">
         Login
       </button>
     </form>

@@ -1,10 +1,61 @@
-// src/components/layout/AuthModal.jsx
 import React, { useState } from "react";
 
 export default function AuthModal({ isOpen, onClose, showLogin }) {
-  if (!isOpen) return null;
-
   const [isLogin, setIsLogin] = useState(showLogin);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+  const [error, setError] = useState("");
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    // Basic validation
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      return setError("Passwords do not match");
+    }
+
+    try {
+      const url = isLogin ? '/api/login' : '/api/signup';
+      const body = isLogin 
+        ? { email: formData.email, password: formData.password }
+        : { name: formData.name, email: formData.email, password: formData.password };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong');
+      }
+
+      // Close modal on success
+      onClose();
+      // Reload or redirect as needed
+      window.location.reload();
+    } catch (err) {
+      console.error('Authentication error:', err);
+      setError(err.message);
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex justify-center items-center z-50">
@@ -28,7 +79,7 @@ export default function AuthModal({ isOpen, onClose, showLogin }) {
         </p>
 
         {/* Form */}
-        <form className="mt-6 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           {!isLogin && (
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -36,6 +87,10 @@ export default function AuthModal({ isOpen, onClose, showLogin }) {
               </label>
               <input
                 type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none transition"
               />
             </div>
@@ -46,8 +101,11 @@ export default function AuthModal({ isOpen, onClose, showLogin }) {
             </label>
             <input
               type="email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none transition"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
               required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none transition"
             />
           </div>
           <div>
@@ -56,10 +114,32 @@ export default function AuthModal({ isOpen, onClose, showLogin }) {
             </label>
             <input
               type="password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none transition"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
               required
+              minLength="6"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none transition"
             />
           </div>
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none transition"
+              />
+            </div>
+          )}
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
+          )}
           <button
             type="submit"
             className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-3 rounded-lg transition-all duration-200 shadow-md"

@@ -15,11 +15,18 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Add after other middleware
+app.use(cookieParser());
+
+// Configure CORS properly
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
 const EDAMAM_APP_ID = process.env.REACT_APP_EDAMAM_APP_ID;
 const EDAMAM_APP_KEY = process.env.REACT_APP_EDAMAM_APP_KEY;
 const FDC_API_KEY = process.env.REACT_APP_FDC_API_KEY;
-
-
 
 const db = mysql.createPool({
   host: process.env.DB_HOST,
@@ -63,12 +70,10 @@ transporter.verify(function(error, success) {
   }
 });
 
-
 console.log("EDAMAM_APP_ID:", EDAMAM_APP_ID);
 console.log("EDAMAM_APP_KEY:", EDAMAM_APP_KEY);
 console.log("FDC_API_KEY:", FDC_API_KEY);
 console.log("FDC_API_KEY:", process.env.REACT_APP_FDC_API_KEY);
-
 
 // Add near other API endpoints
 
@@ -189,9 +194,6 @@ app.get('/api/food', async (req, res) => {
   }
 });
 
-
-
-
 app.get('/api/mealplan', async (req, res) => {
   try {
     const { targetCalories } = req.query;
@@ -306,6 +308,142 @@ app.get('/api/lookup', async (req, res) => {
       error: 'Error fetching recipe details',
       details: error.response?.data || error.message
     });
+  }
+});
+
+// JWT Secret (add to .env)
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
+
+// Signup Endpoint
+app.post('/api/signup', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Validation
+    if (!(email && password && name)) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Check if user exists
+    const [users] = await db.promise().query(
+      "SELECT email FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (users.length > 0) {
+      return res.status(409).json({ error: "Email already exists" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const [result] = await db.promise().query(
+      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+      [name, email, hashedPassword]
+    );
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: result.insertId, email },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    // Set cookie
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
+    return res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error("Signup error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Login Endpoint
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!(email && password)) {
+      return res.status(400).json({ error: "Email and password required" });
+    }
+
+    // Get user
+    const [users] = await db.promise().query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const user = users[0];
+
+    // Verify password
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    // Set cookie
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
+    return res.json({ message: "Login successful", user: { id: user.id, name: user.name, email: user.email } });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Logout Endpoint
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
+  res.json({ message: "Logged out successfully" });
+});
+
+// Auth Check Endpoint
+app.get('/api/me', async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    const [users] = await db.promise().query(
+      "SELECT id, name, email FROM users WHERE id = ?",
+      [decoded.id]
+    );
+
+    if (users.length === 0) return res.status(404).json({ error: "User not found" });
+
+    res.json(users[0]);
+  } catch (error) {
+    console.error("Auth check error:", error);
+    return res.status(401).json({ error: "Invalid token" });
   }
 });
 
