@@ -1,64 +1,34 @@
-// src/pages/MealPlan.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 export default function MealPlan() {
   const location = useLocation();
   const mealPlanData = location.state;
-  const [recipes, setRecipes] = useState({});
+  const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchRecipeDetails() {
-      if (!mealPlanData?.selection?.[0]?.sections) {
+      if (!mealPlanData?.meals) {
         setLoading(false);
         setError("No meal plan data available");
         return;
       }
 
       try {
-        const newRecipes = {};
-        const backendUrl = "http://localhost:5000";
-        const sections = mealPlanData.selection[0].sections;
-        
-        for (const [sectionKey, section] of Object.entries(sections)) {
-          if (!section.assigned) {
-            console.log(`No assigned recipe for ${sectionKey}`);
-            continue;
-          }
+        const recipePromises = mealPlanData.meals.map(meal =>
+          fetch(`http://localhost:5000/api/recipe/${meal.id}`).then(res => res.json())
+        );
 
-          try {
-            const url = `${backendUrl}/api/lookup?recipeURI=${encodeURIComponent(section.assigned)}`;
-            console.log(`Fetching recipe for ${sectionKey} from:`, url);
-            
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log(`Received data for ${sectionKey}:`, data);
-            
-            if (Array.isArray(data) && data.length > 0) {
-              newRecipes[sectionKey] = data[0];
-              console.log(`Successfully added recipe for ${sectionKey}`);
-            } else {
-              console.error(`Invalid data format for ${sectionKey}`);
-            }
-          } catch (error) {
-            console.error(`Error fetching details for ${sectionKey}:`, error);
-          }
-        }
-
-        if (Object.keys(newRecipes).length === 0) {
-          setError("No recipes could be loaded. Please try again.");
-        } else {
-          setRecipes(newRecipes);
-        }
+        const recipeDetails = await Promise.all(recipePromises);
+        const recipesWithCalories = recipeDetails.map((recipe, index) => ({
+          ...recipe,
+          calories: recipe.calories || mealPlanData.meals[index].calories || 0
+        }));
+        setRecipes(recipesWithCalories);
       } catch (error) {
-        console.error("Error in fetchRecipeDetails:", error);
+        console.error("Error fetching recipe details:", error);
         setError("Failed to fetch recipe details. Please try again.");
       } finally {
         setLoading(false);
@@ -67,6 +37,20 @@ export default function MealPlan() {
 
     fetchRecipeDetails();
   }, [mealPlanData]);
+
+  const getMealType = (index) => {
+    const types = ["Breakfast", "Lunch", "Dinner"];
+    return types[index] || "Meal";
+  };
+
+  const calculateProgress = (calories) => {
+    const targetCalories = mealPlanData?.nutrients?.calories || 0;
+    return Math.min((calories / targetCalories) * 100, 100);
+  };
+
+  const getTotalCalories = () => {
+    return recipes.reduce((total, recipe) => total + (recipe.calories || 0), 0);
+  };
 
   return (
     <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white">
@@ -85,29 +69,65 @@ export default function MealPlan() {
           </div>
         )}
 
+        {recipes.length > 0 && (
+          <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+            <h2 className="text-2xl font-bold text-yellow-400 mb-4">Calorie Breakdown</h2>
+            <div className="space-y-4">
+              {recipes.map((recipe, index) => (
+                <div key={`calorie-${index}`} className="relative">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-gray-300">{getMealType(index)}</span>
+                    <span className="text-yellow-400">{Math.round(recipe.calories)} cal</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-yellow-400 h-2 rounded-full transition-all duration-500" 
+                      style={{ width: `${calculateProgress(recipe.calories)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+              <div className="border-t border-gray-700 pt-4 mt-4">
+                <div className="flex justify-between">
+                  <span className="font-bold">Total Calories</span>
+                  <span className="font-bold text-yellow-400">
+                    {Math.round(getTotalCalories())} / {Math.round(mealPlanData.nutrients.calories)} cal
+                  </span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-green-400 h-2 rounded-full transition-all duration-500" 
+                    style={{ width: `${(getTotalCalories() / mealPlanData.nutrients.calories) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(recipes).map(([sectionKey, recipeDetail]) => (
-            <div key={sectionKey} className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-2xl transition">
-              <h3 className="text-xl font-bold mb-3 text-yellow-400">{sectionKey}</h3>
+          {recipes.map((recipe, index) => (
+            <div key={recipe.id} className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-2xl transition">
+              <h3 className="text-xl font-bold mb-3 text-yellow-400">{getMealType(index)}</h3>
               <div className="space-y-3">
-                {recipeDetail.image && (
+                {recipe.image && (
                   <img
-                    src={recipeDetail.image}
-                    alt={recipeDetail.label}
+                    src={recipe.image}
+                    alt={recipe.title}
                     className="w-full h-48 object-cover rounded-lg"
                   />
                 )}
-                <h4 className="text-lg font-semibold text-yellow-400">{recipeDetail.label}</h4>
+                <h4 className="text-lg font-semibold text-yellow-400">{recipe.title}</h4>
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">Calories:</span>
-                  <span>{Math.round(recipeDetail.calories)}</span>
+                  <span>{Math.round(recipe.calories)} cal</span>
                 </div>
-                {recipeDetail.ingredientLines && (
+                {recipe.extendedIngredients && (
                   <div>
                     <h5 className="font-medium mb-2">Ingredients:</h5>
                     <ul className="list-disc ml-5 space-y-1">
-                      {recipeDetail.ingredientLines.map((line, i) => (
-                        <li key={i} className="text-gray-300">{line}</li>
+                      {recipe.extendedIngredients.map((ingredient, i) => (
+                        <li key={i} className="text-gray-300">{ingredient.original}</li>
                       ))}
                     </ul>
                   </div>

@@ -24,9 +24,9 @@ app.use(cors({
   credentials: true
 }));
 
-const EDAMAM_APP_ID = process.env.REACT_APP_EDAMAM_APP_ID;
-const EDAMAM_APP_KEY = process.env.REACT_APP_EDAMAM_APP_KEY;
-const FDC_API_KEY = process.env.REACT_APP_FDC_API_KEY;
+
+const SPOONACULAR_API_KEY = process.env.SPOONACULAR_API_KEY;
+
 
 const db = mysql.createPool({
   host: process.env.DB_HOST,
@@ -70,10 +70,8 @@ transporter.verify(function(error, success) {
   }
 });
 
-console.log("EDAMAM_APP_ID:", EDAMAM_APP_ID);
-console.log("EDAMAM_APP_KEY:", EDAMAM_APP_KEY);
-console.log("FDC_API_KEY:", FDC_API_KEY);
-console.log("FDC_API_KEY:", process.env.REACT_APP_FDC_API_KEY);
+
+console.log("SPOONACULAR_API_KEY:", process.env.SPOONACULAR_API_KEY);
 
 // Add near other API endpoints
 
@@ -138,51 +136,63 @@ Message: ${message}
 app.get('/api/food', async (req, res) => {
   try {
     const { q } = req.query;
-    if (!q) {
-      return res.status(400).json({ error: 'Search query is required' });
-    }
+    if (!q) return res.status(400).json({ error: 'Search query is required' });
 
-    const response = await axios.get(
-      `https://api.nal.usda.gov/fdc/v1/foods/search`,
+    // Step 1: Search for ingredients
+    const searchResponse = await axios.get(
+      'https://api.spoonacular.com/food/ingredients/search',
       {
         params: {
-          api_key: FDC_API_KEY,
+          apiKey: process.env.SPOONACULAR_API_KEY,
           query: q,
-          dataType: "Survey (FNDDS)", // Remove the array brackets and encode properly
-          pageSize: 5
-        },
-        paramsSerializer: (params) => {
-          // Use qs library to properly serialize the params
-          return qs.stringify(params, { arrayFormat: 'repeat' });
+          number: 3 // Limit results to manage API costs
         }
       }
     );
 
-    const simplifiedResults = response.data.foods.map(food => {
-      const nutrients = {};
-      food.foodNutrients.forEach(nutrient => {
-        switch(nutrient.nutrientId) {
-          case 1008: // Calories
-            nutrients.calories = nutrient.value;
-            break;
-          case 1003: // Protein
-            nutrients.protein = nutrient.value;
-            break;
-          case 1004: // Fat
-            nutrients.fat = nutrient.value;
-            break;
-          case 1005: // Carbs
-            nutrients.carbs = nutrient.value;
-            break;
+    if (!searchResponse.data.results || !searchResponse.data.results.length) {
+      return res.json([]);
+    }
+
+    // Step 2: Get detailed nutrition for each ingredient
+    const detailedRequests = searchResponse.data.results.map(ingredient => 
+      axios.get(
+        `https://api.spoonacular.com/food/ingredients/${ingredient.id}/information`,
+        {
+          params: {
+            apiKey: process.env.SPOONACULAR_API_KEY,
+            amount: 100,
+            unit: 'grams'
+          }
         }
-      });
-      
-      return {
-        fdcId: food.fdcId,
-        description: food.description,
-        ...nutrients
-      };
-    });
+      ).catch(err => null) // Handle individual request failures
+    );
+
+    const detailedResults = await Promise.allSettled(detailedRequests);
+
+    // Step 3: Process successful responses
+    const simplifiedResults = detailedResults
+      .map(result => {
+        if (result.status !== 'fulfilled' || !result.value?.data) return null;
+        
+        const data = result.value.data;
+        const nutrients = (data.nutrition?.nutrients || []).reduce((acc, nutrient) => {
+          switch(nutrient.name) {
+            case 'Calories': acc.calories = nutrient.amount; break;
+            case 'Protein': acc.protein = nutrient.amount; break;
+            case 'Fat': acc.fat = nutrient.amount; break;
+            case 'Carbohydrates': acc.carbs = nutrient.amount; break;
+          }
+          return acc;
+        }, { calories: 0, protein: 0, fat: 0, carbs: 0 });
+
+        return {
+          fdcId: data.id,
+          description: data.name,
+          ...nutrients
+        };
+      })
+      .filter(item => item !== null); // Remove failed requests
 
     res.json(simplifiedResults);
   } catch (error) {
@@ -194,74 +204,47 @@ app.get('/api/food', async (req, res) => {
   }
 });
 
+
 app.get('/api/mealplan', async (req, res) => {
   try {
     const { targetCalories } = req.query;
     if (!targetCalories) {
       return res.status(400).json({ error: 'targetCalories parameter is required' });
     }
-    const tc = parseInt(targetCalories, 10);
 
-    const breakfastTarget = Math.round(tc * 0.25);
-    const lunchTarget = Math.round(tc * 0.35);
-    const dinnerTarget = Math.round(tc * 0.40);
-
-    const variance = 0.10;
-    
-    const breakfastMin = Math.round(breakfastTarget * (1 - variance));
-    const breakfastMax = Math.round(breakfastTarget * (1 + variance));
-    const lunchMin = Math.round(lunchTarget * (1 - variance));
-    const lunchMax = Math.round(lunchTarget * (1 + variance));
-    const dinnerMin = Math.round(dinnerTarget * (1 - variance));
-    const dinnerMax = Math.round(dinnerTarget * (1 + variance));
-
-    const edamamUrl = `https://api.edamam.com/api/meal-planner/v1/${EDAMAM_APP_ID}/select?app_id=${EDAMAM_APP_ID}&app_key=${EDAMAM_APP_KEY}`;
-
-    const requestBody = {
-      size: 1,
-      plan: {
-        sections: {
-          "Breakfast": { accept: { all: [{ meal: ["breakfast"] }] }, fit: { ENERC_KCAL: { min: breakfastMin, max: breakfastMax } } },
-          "Lunch": { accept: { all: [{ meal: ["lunch/dinner"] }] }, fit: { ENERC_KCAL: { min: lunchMin, max: lunchMax } } },
-          "Dinner": { accept: { all: [{ meal: ["lunch/dinner"] }] }, fit: { ENERC_KCAL: { min: dinnerMin, max: dinnerMax } } }
-        },
-        fit: {
-          ENERC_KCAL: {
-            min: Math.round(tc * 0.95),
-            max: Math.round(tc * 1.05)
-          }
+    const response = await axios.get(
+      'https://api.spoonacular.com/mealplanner/generate',
+      {
+        params: {
+          apiKey: SPOONACULAR_API_KEY,
+          timeFrame: 'day',
+          targetCalories: targetCalories
         }
       }
-    };
+    );
 
-    console.log("Calorie targets:", {
-      total: tc,
-      breakfast: { target: breakfastTarget, min: breakfastMin, max: breakfastMax },
-      lunch: { target: lunchTarget, min: lunchMin, max: lunchMax },
-      dinner: { target: dinnerTarget, min: dinnerMin, max: dinnerMax }
-    });
+    // Get detailed nutritional information for each meal
+    const mealsWithNutrition = await Promise.all(
+      response.data.meals.map(async (meal) => {
+        const nutritionResponse = await axios.get(
+          `https://api.spoonacular.com/recipes/${meal.id}/nutritionWidget.json`,
+          {
+            params: {
+              apiKey: SPOONACULAR_API_KEY
+            }
+          }
+        );
+        return {
+          ...meal,
+          calories: parseFloat(nutritionResponse.data.calories)
+        };
+      })
+    );
 
-    console.log("Requesting Edamam API at:", edamamUrl);
-    console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+    // Update the response with detailed nutrition info
+    response.data.meals = mealsWithNutrition;
 
-    const response = await axios.post(edamamUrl, requestBody, {
-      headers: {
-        "Content-Type": "application/json",
-        "Edamam-Account-User": "testuser"
-      }
-    });
-
-    const responseWithTargets = {
-      ...response.data,
-      calorieTargets: {
-        total: tc,
-        breakfast: breakfastTarget,
-        lunch: lunchTarget,
-        dinner: dinnerTarget
-      }
-    };
-
-    res.json(responseWithTargets);
+    res.json(response.data);
   } catch (error) {
     console.error("Error in /api/mealplan:", error.response?.data || error.message);
     res.status(500).json({
@@ -271,45 +254,43 @@ app.get('/api/mealplan', async (req, res) => {
   }
 });
 
-app.get('/api/lookup', async (req, res) => {
-  const { recipeURI } = req.query;
-  if (!recipeURI) {
-    return res.status(400).json({ error: 'recipeURI parameter is required' });
-  }
-  
-  const recipeId = recipeURI.split('#recipe_')[1];
-  if (!recipeId) {
-    return res.status(400).json({ error: 'Invalid recipe URI format' });
-  }
-  
-  const lookupUrl = `https://api.edamam.com/api/recipes/v2/${recipeId}?type=public&app_id=${EDAMAM_APP_ID}&app_key=${EDAMAM_APP_KEY}`;
-  
+app.get('/api/recipe/:id', async (req, res) => {
   try {
-    console.log('Requesting recipe details from Edamam:', lookupUrl);
-    const response = await axios.get(lookupUrl, {
-      headers: {
-        "Accept": "application/json",
-        "Edamam-Account-User": "testuser"
-      }
-    });
+    const { id } = req.params;
+    const [recipeInfo, nutritionInfo] = await Promise.all([
+      axios.get(
+        `https://api.spoonacular.com/recipes/${id}/information`,
+        {
+          params: {
+            apiKey: SPOONACULAR_API_KEY
+          }
+        }
+      ),
+      axios.get(
+        `https://api.spoonacular.com/recipes/${id}/nutritionWidget.json`,
+        {
+          params: {
+            apiKey: SPOONACULAR_API_KEY
+          }
+        }
+      )
+    ]);
     
-    console.log('Received response from Edamam:', response.status);
-    console.log('Response data:', JSON.stringify(response.data, null, 2));
+    const response = {
+      ...recipeInfo.data,
+      calories: parseFloat(nutritionInfo.data.calories)
+    };
     
-    const recipe = response.data.recipe;
-    if (!recipe) {
-      throw new Error('No recipe data in response');
-    }
-    
-    res.json([recipe]);
+    res.json(response);
   } catch (error) {
-    console.error("Error in /api/lookup:", error.response?.data || error.message);
+    console.error("Error in /api/recipe:", error.response?.data || error.message);
     res.status(500).json({
       error: 'Error fetching recipe details',
       details: error.response?.data || error.message
     });
   }
 });
+
 
 // JWT Secret (add to .env)
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
