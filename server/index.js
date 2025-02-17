@@ -133,6 +133,53 @@ Message: ${message}
   }
 });
 
+// Get recipe search results
+app.get('/api/recipes/search', async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) return res.status(400).json({ error: 'Search query required' });
+
+    const response = await axios.get(
+      'https://api.spoonacular.com/recipes/complexSearch',
+      {
+        params: {
+          apiKey: SPOONACULAR_API_KEY,
+          query: query,
+          number: 12,
+          addRecipeInformation: true,
+          instructionsRequired: true
+        }
+      }
+    );
+
+    res.json(response.data.results);
+  } catch (error) {
+    console.error("Recipe search error:", error.response?.data || error.message);
+    res.status(500).json({ error: 'Error searching recipes' });
+  }
+});
+
+// Get random popular recipes for homepage
+app.get('/api/recipes/random', async (req, res) => {
+  try {
+    const response = await axios.get(
+      'https://api.spoonacular.com/recipes/random',
+      {
+        params: {
+          apiKey: SPOONACULAR_API_KEY,
+          number: 8,
+          tags: 'main course'
+        }
+      }
+    );
+    
+    res.json(response.data.recipes);
+  } catch (error) {
+    console.error("Random recipes error:", error.response?.data || error.message);
+    res.status(500).json({ error: 'Error fetching recipes' });
+  }
+});
+
 app.get('/api/food', async (req, res) => {
   try {
     const { q } = req.query;
