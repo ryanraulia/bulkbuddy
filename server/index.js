@@ -6,27 +6,27 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require('cors');
 const qs = require('qs');
+const path = require('path'); // Add this import
+const multer = require('multer'); // Add this import
 require('dotenv').config();
 const cookieParser = require("cookie-parser");
+const fs = require('fs'); // Add this import
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
-
-// Add after other middleware
 app.use(cookieParser());
 
 // Configure CORS properly
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['Content-Disposition']  // Add this line
 }));
 
-
 const SPOONACULAR_API_KEY = process.env.SPOONACULAR_API_KEY;
-
 
 const db = mysql.createPool({
   host: process.env.DB_HOST,
@@ -69,7 +69,6 @@ transporter.verify(function(error, success) {
     console.log('SMTP server is ready to take our messages');
   }
 });
-
 
 console.log("SPOONACULAR_API_KEY:", process.env.SPOONACULAR_API_KEY);
 
@@ -338,7 +337,6 @@ app.get('/api/recipe/:id', async (req, res) => {
   }
 });
 
-
 // JWT Secret (add to .env)
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
@@ -436,7 +434,19 @@ app.post('/api/login', async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000
     });
 
-    return res.json({ message: "Login successful", user: { id: user.id, name: user.name, email: user.email } });
+    // In index.js, modify the login endpoint response
+return res.json({ 
+  message: "Login successful", 
+  user: { 
+    id: user.id, 
+    name: user.name, 
+    email: user.email,
+    profile_picture: user.profile_picture,  // Add these
+    bio: user.bio,
+    location: user.location,
+    website: user.website
+  } 
+ });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -462,7 +472,7 @@ app.get('/api/me', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     
     const [users] = await db.promise().query(
-      "SELECT id, name, email FROM users WHERE id = ?",
+      "SELECT id, name, email, profile_picture, bio, location, website FROM users WHERE id = ?", // Updated query
       [decoded.id]
     );
 
@@ -472,6 +482,97 @@ app.get('/api/me', async (req, res) => {
   } catch (error) {
     console.error("Auth check error:", error);
     return res.status(401).json({ error: "Invalid token" });
+  }
+});
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, 'uploads'));
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+// Create uploads directory if it doesn't exist
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads');
+}
+
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Update profile endpoint
+app.put('/api/profile/update', upload.single('profile_picture'), async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const updateData = {
+      name: req.body.name,
+      bio: req.body.bio,
+      location: req.body.location,
+      website: req.body.website
+    };
+
+    if (req.file) {
+      // Get current user data first
+      const [currentUser] = await db.promise().query(
+        "SELECT profile_picture FROM users WHERE id = ?",
+        [decoded.id]
+      );
+      
+      // Delete old profile picture if it exists
+      if (currentUser[0].profile_picture && currentUser[0].profile_picture !== '/default-avatar.png') {
+        const oldFilename = path.basename(currentUser[0].profile_picture);
+        try {
+          fs.unlinkSync(path.join(__dirname, 'uploads', oldFilename));
+        } catch (err) {
+          console.error("Error deleting old profile picture:", err);
+        }
+      }
+
+      // Store full URL in database
+      const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+      updateData.profile_picture = `${serverUrl}/uploads/${req.file.filename}`;
+    }
+
+    const [result] = await db.promise().query(
+      "UPDATE users SET ? WHERE id = ?",
+      [updateData, decoded.id]
+    );
+
+    // Add this check
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const [users] = await db.promise().query(
+      "SELECT id, name, email, profile_picture, bio, location, website FROM users WHERE id = ?",
+      [decoded.id]
+    );
+
+    res.json(users[0]);
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ 
+      error: "Error updating profile",
+      details: error.message 
+    });
   }
 });
 
