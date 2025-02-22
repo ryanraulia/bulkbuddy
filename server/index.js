@@ -253,20 +253,22 @@ app.get('/api/food', async (req, res) => {
 
 app.get('/api/mealplan', async (req, res) => {
   try {
-    const { targetCalories } = req.query;
-    if (!targetCalories) {
-      return res.status(400).json({ error: 'targetCalories parameter is required' });
-    }
+    const { targetCalories, diet, intolerances } = req.query;
+    
+    const params = {
+      apiKey: SPOONACULAR_API_KEY,
+      timeFrame: 'day',
+      targetCalories: targetCalories,
+      diet: diet,
+      intolerances: intolerances
+    };
+
+    // Remove undefined parameters
+    Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
 
     const response = await axios.get(
       'https://api.spoonacular.com/mealplanner/generate',
-      {
-        params: {
-          apiKey: SPOONACULAR_API_KEY,
-          timeFrame: 'day',
-          targetCalories: targetCalories
-        }
-      }
+      { params }
     );
 
     // Get detailed nutritional information for each meal
@@ -289,6 +291,12 @@ app.get('/api/mealplan', async (req, res) => {
 
     // Update the response with detailed nutrition info
     response.data.meals = mealsWithNutrition;
+
+    // Add the filters to the response
+    response.data.filters = {
+      diet: diet || 'none',
+      intolerances: intolerances ? intolerances.split(',') : []
+    };
 
     res.json(response.data);
   } catch (error) {

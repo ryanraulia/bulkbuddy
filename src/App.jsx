@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home.jsx';
@@ -7,9 +6,9 @@ import Recipes from './pages/Recipes.jsx';
 import Calculators from './pages/Calculators.jsx';
 import Contact from './pages/Contact.jsx';
 import Tips from './pages/Tips.jsx';
-import Profile from './pages/Profile.jsx'; // Import Profile page
-import SearchResults from './pages/SearchResults'; // Add this route
-import Layout from './components/layout/Layout.jsx'; // Import Layout
+import Profile from './pages/Profile.jsx'; 
+import SearchResults from './pages/SearchResults'; 
+import Layout from './components/layout/Layout.jsx'; 
 
 function App() {
   return (
@@ -22,8 +21,8 @@ function App() {
           <Route path="/calculators" element={<Calculators />} />
           <Route path="/tips" element={<Tips />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/profile" element={<Profile />} /> {/* Add Profile route */}
-          <Route path="/search" element={<SearchResults />} /> {/* Add SearchResults route */}
+          <Route path="/profile" element={<Profile />} /> 
+          <Route path="/search" element={<SearchResults />} /> 
         </Routes>
       </Layout>
     </Router>

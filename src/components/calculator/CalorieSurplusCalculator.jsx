@@ -1,7 +1,7 @@
-// src/components/calculator/CalorieSurplusCalculator.jsx
 import React, { useState } from 'react';
 
 export default function CalorieCalculator() {
+  // State Management: Manage user inputs and calculated results
   const [inputs, setInputs] = useState({
     age: '',
     weight: '',
@@ -16,6 +16,7 @@ export default function CalorieCalculator() {
 
   const [results, setResults] = useState(null);
 
+  // Activity levels for the dropdown
   const activityLevels = [
     { value: '1.2', label: 'Sedentary (little/no exercise)' },
     { value: '1.375', label: 'Light (exercise 1-3 days/week)' },
@@ -24,6 +25,7 @@ export default function CalorieCalculator() {
     { value: '1.9', label: 'Very Active (hard exercise & physical job)' }
   ];
 
+  // Validation: Ensure required fields are filled
   const validateInputs = () => {
     const required = ['age', 'weight', 'height', 'goalWeight'];
     for (const field of required) {
@@ -35,6 +37,7 @@ export default function CalorieCalculator() {
     return true;
   };
 
+  // Calculate results based on user inputs
   const calculateResults = () => {
     if (!validateInputs()) return;
 
@@ -52,7 +55,7 @@ export default function CalorieCalculator() {
     const weeklyChange = parseFloat(targetWeightChange);
     const goalW = parseFloat(goalWeight);
 
-    // Calculate BMR
+    // BMR Calculation: Uses either the Mifflin-St Jeor formula or the Katch-McArdle formula
     let bmr;
     if (bf) {
       const leanMass = w * (1 - bf/100);
@@ -70,7 +73,7 @@ export default function CalorieCalculator() {
       ? maintenance + calorieAdjustment 
       : maintenance - calorieAdjustment;
 
-    // Fixed macro ratios
+    // Macro Breakdown: Fixed ratios for protein, fats, and carbs
     const protein = w * 2.2;  // Fixed at 2.2g/kg
     const fatPercentage = 0.25;  // Fixed at 25% of calories
     
@@ -80,12 +83,13 @@ export default function CalorieCalculator() {
     const carbCalories = totalCalories - (protein * 4 + fatCalories);
     const carbs = carbCalories / 4;
 
-    // Calculate time to goal
+    // Time to Goal Calculation: Computes weeks to reach goal weight
     const weightDifference = goalType === 'surplus' 
       ? goalW - w 
       : w - goalW;
     const weeksToGoal = weightDifference / weeklyChange;
 
+    // Set the results state
     setResults({
       maintenance: maintenance.toFixed(0),
       totalCalories: totalCalories.toFixed(0),
@@ -97,6 +101,7 @@ export default function CalorieCalculator() {
     });
   };
 
+  // Handle input changes
   const handleInputChange = (field, value) => {
     setInputs(prev => ({ ...prev, [field]: value }));
   };

@@ -1,4 +1,3 @@
-// src/components/forms/LoginForm.jsx
 import React from 'react';
 
 export default function LoginForm() {
@@ -6,13 +5,13 @@ export default function LoginForm() {
     <form>
       <div className="mb-4">
         <label className="block text-gray-700">Email</label>
-        <input type="email" className="w-full px-3 py-2 border rounded-lg text-white bg-gray-800" />
+        <input type="email" className="w-full px-3 py-2 border rounded-lg text-black bg-gray-800" />
       </div>
       <div className="mb-4">
         <label className="block text-gray-700">Password</label>
-        <input type="password" className="w-full px-3 py-2 border rounded-lg text-white bg-gray-800" />
+        <input type="password" className="w-full px-3 py-2 border rounded-lg text-black bg-gray-800" />
       </div>
-      <button type="submit" className="w-full bg-yellow-500 text-white py-2 rounded-lg">
+      <button type="submit" className="w-full bg-yellow-500 text-black py-2 rounded-lg">
         Login
       </button>
     </form>

@@ -1,4 +1,3 @@
-// src/pages/Calculators.jsx
 import React from 'react';
 import CalorieSurplusCalculator from '../components/calculator/CalorieSurplusCalculator';
 import FoodCalorieCalculator from '../components/calculator/FoodCalorieCalculator';

@@ -52,11 +52,46 @@ export default function MealPlan() {
     return recipes.reduce((total, recipe) => total + (recipe.calories || 0), 0);
   };
 
+  const getDietaryInfo = (recipe) => {
+    return (
+      <div className="mt-4">
+        <h5 className="font-medium mb-2">Dietary Information:</h5>
+        <ul className="list-disc ml-5 space-y-1 text-gray-300">
+          <li>Gluten-Free: {recipe.glutenFree ? 'Yes' : 'No'}</li>
+          <li>Vegetarian: {recipe.vegetarian ? 'Yes' : 'No'}</li>
+          <li>Vegan: {recipe.vegan ? 'Yes' : 'No'}</li>
+          <li>Dairy-Free: {recipe.dairyFree ? 'Yes' : 'No'}</li>
+          <li>Low FODMAP: {recipe.lowFodmap ? 'Yes' : 'No'}</li>
+          <li>Sustainable: {recipe.sustainable ? 'Yes' : 'No'}</li>
+          <li>Very Healthy: {recipe.veryHealthy ? 'Yes' : 'No'}</li>
+          <li>Cheap: {recipe.cheap ? 'Yes' : 'No'}</li>
+          <li>Very Popular: {recipe.veryPopular ? 'Yes' : 'No'}</li>
+          <li>Diets: {recipe.diets.join(', ')}</li>
+        </ul>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white">
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-8">Your Meal Plan</h1>
         
+        {/* Add filters summary */}
+        {mealPlanData?.filters && (
+          <div className="bg-gray-800 p-4 rounded-lg mb-6">
+            <h2 className="text-yellow-400 text-lg font-bold mb-2">Applied Filters</h2>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-300">Diet:</span>
+                <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
+                  {mealPlanData.filters.diet || 'None'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {loading && (
           <div className="flex items-center justify-center p-4">
             <p className="text-lg animate-pulse text-yellow-400">Loading your meal plan...</p>
@@ -132,6 +167,7 @@ export default function MealPlan() {
                     </ul>
                   </div>
                 )}
+                {getDietaryInfo(recipe)}
               </div>
             </div>
           ))}

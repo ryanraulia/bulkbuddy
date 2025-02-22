@@ -1,6 +1,5 @@
-// src/pages/Contact.jsx
 import React from 'react';
-import ContactForm from "../components/contact/ContactForm.jsx";  // Import the ContactForm component
+import ContactForm from "../components/contact/ContactForm.jsx"; 
 
 export default function Contact() {
   return (
@@ -12,7 +11,7 @@ export default function Contact() {
             Welcome to Bulk Buddy. If you have any questions or comments, feel free to reach out to us!
           </p>
 
-          {/* ContactForm component here */}
+          {/* ContactForm */}
           <ContactForm />
         </div>
       </div>

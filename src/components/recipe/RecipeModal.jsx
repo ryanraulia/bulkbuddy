@@ -1,4 +1,3 @@
-// src/components/recipe/RecipeModal.jsx
 import React from 'react';
 import axios from 'axios';
 

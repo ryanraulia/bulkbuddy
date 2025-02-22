@@ -4,12 +4,21 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
   const [targetCalories, setTargetCalories] = useState('');
+  const [diet, setDiet] = useState('');
+  const [intolerances, setIntolerances] = useState([]);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/api/mealplan?targetCalories=${targetCalories}`);
+      const queryParams = new URLSearchParams({
+        targetCalories: targetCalories,
+      });
+      
+      if (diet) queryParams.append('diet', diet);
+      if (intolerances.length > 0) queryParams.append('intolerances', intolerances.join(','));
+
+      const response = await fetch(`http://localhost:5000/api/mealplan?${queryParams.toString()}`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -33,6 +42,7 @@ export default function Home() {
 
         {/* Meal Plan Form */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {/* Existing calorie input */}
           <input
             type="number"
             placeholder="Enter target calories (e.g., 2500)"
@@ -41,6 +51,46 @@ export default function Home() {
             className="w-full p-3 bg-gray-900 text-white border border-gray-700 rounded-lg focus:border-yellow-400 focus:ring-2 focus:ring-yellow-500 transition"
             required
           />
+
+          {/* Dietary Preferences Dropdown */}
+          <select
+            value={diet}
+            onChange={(e) => setDiet(e.target.value)}
+            className="w-full p-3 bg-gray-900 text-white border border-gray-700 rounded-lg focus:border-yellow-400 focus:ring-2 focus:ring-yellow-500 transition"
+          >
+            <option value="">Select Dietary Preference (Optional)</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="gluten free">Gluten Free</option>
+            <option value="ketogenic">Ketogenic</option>
+            <option value="paleo">Paleo</option>
+          </select>
+
+          {/* Intolerances Checkboxes */}
+          <div className="bg-gray-900 p-4 rounded-lg border border-gray-700">
+            <h3 className="text-yellow-400 mb-2">Dietary Restrictions (Optional)</h3>
+            <div className="grid grid-cols-2 gap-2 text-left">
+              {['dairy', 'egg', 'gluten', 'peanut', 'seafood', 'sesame', 'shellfish', 'soy', 'sulfite', 'tree nut'].map((intolerance) => (
+                <label key={intolerance} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    value={intolerance}
+                    checked={intolerances.includes(intolerance)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setIntolerances([...intolerances, e.target.value]);
+                      } else {
+                        setIntolerances(intolerances.filter(i => i !== e.target.value));
+                      }
+                    }}
+                    className="form-checkbox h-4 w-4 rounded bg-gray-800 border-gray-600 checked:bg-yellow-500 checked:border-yellow-500 focus:ring-yellow-500/50 focus:ring-2 transition-colors duration-200"
+                  />
+                  <span className="capitalize">{intolerance}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           <button
             type="submit"
             className="w-full bg-yellow-500 text-gray-900 font-bold p-3 rounded-lg hover:bg-yellow-400 transition shadow-md"

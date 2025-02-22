@@ -5,9 +5,9 @@ import { FaFacebookF, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa';
 export default function Footer() {
   return (
     <footer className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-yellow-500 text-white py-8 mt-auto shadow-2xl relative">
-      <div className="absolute inset-0 bg-[url('/images/food-texture.png')] opacity-10"></div> {/* Subtle texture */}
+      <div className="absolute inset-0 bg-[url('/images/food-texture.png')] opacity-10"></div>
       <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-center md:text-left relative z-10">
-        {/* Left - Branding & Slogan */}
+        {/* Left - Name */}
         <div>
           <h2 className="text-3xl font-extrabold text-yellow-400 flex items-center gap-2">
             Bulk<span className="text-white">Buddy</span>
@@ -41,7 +41,7 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom - Copyright */}
+      {/* Bottom */}
       <div className="mt-6 text-center text-gray-500 text-sm relative z-10">
         &copy; {new Date().getFullYear()} BulkBuddy. All rights reserved.
       </div>

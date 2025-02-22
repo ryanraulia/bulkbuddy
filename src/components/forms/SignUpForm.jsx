@@ -1,4 +1,3 @@
-// src/components/forms/SignUpForm.jsx
 import React from 'react';
 
 export default function SignUpForm() {
