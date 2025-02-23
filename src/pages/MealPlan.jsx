@@ -1,5 +1,7 @@
+// src/pages/MealPlan.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import NutritionModal from '../components/recipe/NutritionModal';
 
 export default function MealPlan() {
   const location = useLocation();
@@ -7,6 +9,7 @@ export default function MealPlan() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   useEffect(() => {
     async function fetchRecipeDetails() {
@@ -22,11 +25,19 @@ export default function MealPlan() {
         );
 
         const recipeDetails = await Promise.all(recipePromises);
-        const recipesWithCalories = recipeDetails.map((recipe, index) => ({
-          ...recipe,
-          calories: recipe.calories || mealPlanData.meals[index].calories || 0
-        }));
-        setRecipes(recipesWithCalories);
+        
+        // Client-side filtering
+        const activeIntolerances = mealPlanData.filters?.intolerances || [];
+        const filteredRecipes = recipeDetails.filter(recipe => {
+          if (activeIntolerances.length === 0) return true;
+          return !activeIntolerances.some(intolerance => 
+            recipe.diets?.includes(intolerance) || 
+            recipe.intolerances?.includes(intolerance) ||
+            recipe.extendedIngredients?.some(ing => ing.name.toLowerCase().includes(intolerance))
+          );
+        });
+
+        setRecipes(filteredRecipes);
       } catch (error) {
         console.error("Error fetching recipe details:", error);
         setError("Failed to fetch recipe details. Please try again.");
@@ -52,26 +63,6 @@ export default function MealPlan() {
     return recipes.reduce((total, recipe) => total + (recipe.calories || 0), 0);
   };
 
-  const getDietaryInfo = (recipe) => {
-    return (
-      <div className="mt-4">
-        <h5 className="font-medium mb-2">Dietary Information:</h5>
-        <ul className="list-disc ml-5 space-y-1 text-gray-300">
-          <li>Gluten-Free: {recipe.glutenFree ? 'Yes' : 'No'}</li>
-          <li>Vegetarian: {recipe.vegetarian ? 'Yes' : 'No'}</li>
-          <li>Vegan: {recipe.vegan ? 'Yes' : 'No'}</li>
-          <li>Dairy-Free: {recipe.dairyFree ? 'Yes' : 'No'}</li>
-          <li>Low FODMAP: {recipe.lowFodmap ? 'Yes' : 'No'}</li>
-          <li>Sustainable: {recipe.sustainable ? 'Yes' : 'No'}</li>
-          <li>Very Healthy: {recipe.veryHealthy ? 'Yes' : 'No'}</li>
-          <li>Cheap: {recipe.cheap ? 'Yes' : 'No'}</li>
-          <li>Very Popular: {recipe.veryPopular ? 'Yes' : 'No'}</li>
-          <li>Diets: {recipe.diets.join(', ')}</li>
-        </ul>
-      </div>
-    );
-  };
-
   return (
     <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white">
       <div className="max-w-7xl mx-auto px-4">
@@ -86,6 +77,12 @@ export default function MealPlan() {
                 <span className="text-gray-300">Diet:</span>
                 <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
                   {mealPlanData.filters.diet || 'None'}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-300">Intolerances:</span>
+                <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
+                  {mealPlanData.filters.intolerances.join(', ') || 'None'}
                 </span>
               </div>
             </div>
@@ -167,11 +164,23 @@ export default function MealPlan() {
                     </ul>
                   </div>
                 )}
-                {getDietaryInfo(recipe)}
+                <button
+                  onClick={() => setSelectedRecipe(recipe)}
+                  className="mt-2 w-full bg-yellow-500 text-gray-900 py-2 rounded-lg hover:bg-yellow-400 transition-colors font-medium"
+                >
+                  Show Nutrition Details
+                </button>
               </div>
             </div>
           ))}
         </div>
+
+        {selectedRecipe && (
+          <NutritionModal
+            recipe={selectedRecipe}
+            onClose={() => setSelectedRecipe(null)}
+          />
+        )}
       </div>
     </div>
   );

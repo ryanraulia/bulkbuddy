@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import NutritionModal from './NutritionModal';
 
 const RecipeModal = ({ recipeId, onClose }) => {
-  const [recipe, setRecipe] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+  const [recipe, setRecipe] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isNutritionModalOpen, setIsNutritionModalOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchRecipe = async () => {
       try {
         const response = await axios.get(`/api/recipe/${recipeId}`);
@@ -19,6 +21,14 @@ const RecipeModal = ({ recipeId, onClose }) => {
 
     fetchRecipe();
   }, [recipeId]);
+
+  const handleOpenNutritionModal = () => {
+    setIsNutritionModalOpen(true);
+  };
+
+  const handleCloseNutritionModal = () => {
+    setIsNutritionModalOpen(false);
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
@@ -64,6 +74,20 @@ const RecipeModal = ({ recipeId, onClose }) => {
                 </div>
               </div>
             </div>
+
+            <button
+              onClick={handleOpenNutritionModal}
+              className="mt-4 w-full bg-yellow-500 text-gray-900 py-2 rounded-lg hover:bg-yellow-400 transition-colors font-medium"
+            >
+              Show Nutrition Details
+            </button>
+
+            {isNutritionModalOpen && (
+              <NutritionModal
+                recipe={recipe}
+                onClose={handleCloseNutritionModal}
+              />
+            )}
           </>
         )}
       </div>

@@ -1,3 +1,4 @@
+// server/index.js
 const express = require('express');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
@@ -260,11 +261,14 @@ app.get('/api/mealplan', async (req, res) => {
       timeFrame: 'day',
       targetCalories: targetCalories,
       diet: diet,
-      intolerances: intolerances
+      intolerances: intolerances || undefined // Directly use the comma-separated string
     };
 
     // Remove undefined parameters
     Object.keys(params).forEach(key => params[key] === undefined && delete params[key]);
+
+    // Log for debugging
+    console.log('Spoonacular API Params:', params);
 
     const response = await axios.get(
       'https://api.spoonacular.com/mealplanner/generate',
@@ -292,6 +296,7 @@ app.get('/api/mealplan', async (req, res) => {
     // Update the response with detailed nutrition info
     response.data.meals = mealsWithNutrition;
 
+
     // Add the filters to the response
     response.data.filters = {
       diet: diet || 'none',
@@ -311,28 +316,19 @@ app.get('/api/mealplan', async (req, res) => {
 app.get('/api/recipe/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const [recipeInfo, nutritionInfo] = await Promise.all([
-      axios.get(
-        `https://api.spoonacular.com/recipes/${id}/information`,
-        {
-          params: {
-            apiKey: SPOONACULAR_API_KEY
-          }
+    const recipeInfo = await axios.get(
+      `https://api.spoonacular.com/recipes/${id}/information`,
+      {
+        params: {
+          apiKey: SPOONACULAR_API_KEY,
+          includeNutrition: true
         }
-      ),
-      axios.get(
-        `https://api.spoonacular.com/recipes/${id}/nutritionWidget.json`,
-        {
-          params: {
-            apiKey: SPOONACULAR_API_KEY
-          }
-        }
-      )
-    ]);
-    
+      }
+    );
+
     const response = {
       ...recipeInfo.data,
-      calories: parseFloat(nutritionInfo.data.calories)
+      calories: recipeInfo.data.nutrition?.nutrients.find(n => n.name === 'Calories')?.amount || 0
     };
     
     res.json(response);

@@ -74,34 +74,37 @@ export default function Header() {
     }
   };
 
-  return (
-    <header className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-yellow-500 text-white py-5 shadow-2xl relative">
-      <div className="absolute inset-0 bg-[url('/images/food-texture.png')] opacity-10"></div>
-      <nav className="container mx-auto px-6 flex justify-between items-center relative z-10">
+   return (
+    <header className="bg-slate-900 border-b-2 border-amber-500 text-white py-5 shadow-lg" role="banner">
+      <nav className="container mx-auto px-6 flex justify-between items-center" aria-label="Main navigation">
         <Link 
           to="/" 
-          className="text-4xl font-extrabold tracking-wide text-yellow-400 hover:text-yellow-300 transition duration-300 flex items-center gap-2"
+          className="text-4xl font-extrabold tracking-wide text-amber-400 hover:text-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg transition duration-300 flex items-center gap-2"
+          aria-label="BulkBuddy Home"
         >
-          <FaUtensils className="text-yellow-500" /> Bulk<span className="text-white">Buddy</span>
+          <FaUtensils className="text-amber-400" aria-hidden="true" /> 
+          Bulk<span className="text-white">Buddy</span>
         </Link>
 
         <div className="flex items-center space-x-12">
-          <div className="flex space-x-8 text-lg font-semibold">
-            <Link to="/" className="flex items-center gap-2 hover:text-yellow-300 transition duration-300 hover:scale-105">
-              <FaUtensils className="text-yellow-400" /> Home
-            </Link>
-            <Link to="/calculators" className="flex items-center gap-2 hover:text-yellow-300 transition duration-300 hover:scale-105">
-              <FaCalculator className="text-yellow-400" /> Calculators
-            </Link>
-            <Link to="/recipes" className="flex items-center gap-2 hover:text-yellow-300 transition duration-300 hover:scale-105">
-              <FaBookOpen className="text-yellow-400" /> Recipes
-            </Link>
-            <Link to="/tips" className="flex items-center gap-2 hover:text-yellow-300 transition duration-300 hover:scale-105">
-              <FaLightbulb className="text-yellow-400" /> Tips
-            </Link>
-            <Link to="/contact" className="flex items-center gap-2 hover:text-yellow-300 transition duration-300 hover:scale-105">
-              <FaEnvelope className="text-yellow-400" /> Contact
-            </Link>
+          <div className="flex space-x-8 text-lg font-semibold" role="menubar">
+            {[
+              { to: "/", icon: FaUtensils, label: "Home" },
+              { to: "/calculators", icon: FaCalculator, label: "Calculators" },
+              { to: "/recipes", icon: FaBookOpen, label: "Recipes" },
+              { to: "/tips", icon: FaLightbulb, label: "Tips" },
+              { to: "/contact", icon: FaEnvelope, label: "Contact" }
+            ].map(({ to, icon: Icon, label }) => (
+              <Link
+                key={label}
+                to={to}
+                className="flex items-center gap-2 text-white hover:text-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg p-2 transition duration-300"
+                role="menuitem"
+              >
+                <Icon className="text-amber-400" aria-hidden="true" />
+                <span>{label}</span>
+              </Link>
+            ))}
           </div>
 
           <div className="flex space-x-5">
@@ -110,15 +113,16 @@ export default function Header() {
               <>
                 <Link 
                   to="/profile" 
-                  className="flex items-center gap-2 hover:text-yellow-300 transition duration-300"
+                  className="flex items-center gap-2 hover:text-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-900 rounded-lg p-2 transition duration-300"
+                  aria-label="View Profile"
                 >
-                  <div className="bg-yellow-500 rounded-full p-2">
-                    <FaUser className="text-white text-lg" />
+                  <div className="bg-amber-500 rounded-full p-2">
+                    <FaUser className="text-white text-lg" aria-hidden="true" />
                   </div>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md"
+                  className="bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-lg transition duration-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-slate-900"
                 >
                   Logout
                 </button>
