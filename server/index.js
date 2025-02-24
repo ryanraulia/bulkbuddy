@@ -345,6 +345,24 @@ app.get('/api/recipe/:id', async (req, res) => {
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
 
+// Add this after your JWT configuration
+const requireAdmin = (req, res, next) => {
+  const token = req.cookies.jwt;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ error: "Admin privileges required" });
+    }
+    req.user = decoded;
+    next();
+  } catch (error) {
+    console.error("Admin check error:", error);
+    return res.status(401).json({ error: "Invalid token" });
+  }
+};
+
 // Signup Endpoint
 app.post('/api/signup', async (req, res) => {
   try {
@@ -376,7 +394,11 @@ app.post('/api/signup', async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { id: result.insertId, email },
+      { 
+        id: result.insertId, 
+        email,
+        role: 'user'  // Default role for new users
+      },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -400,32 +422,37 @@ app.post('/api/signup', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Login attempt for:', email); // Add this
 
-    if (!(email && password)) {
-      return res.status(400).json({ error: "Email and password required" });
-    }
-
-    // Get user
     const [users] = await db.promise().query(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
 
+    console.log('Found users:', users); // Add this
+
     if (users.length === 0) {
+      console.log('No user found for:', email);
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const user = users[0];
-
-    // Verify password
+    console.log('Stored hash:', user.password); // Add this
+    
     const validPassword = await bcrypt.compare(password, user.password);
+    console.log('Password valid:', validPassword); // Add this
+
     if (!validPassword) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     // Generate JWT
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { 
+        id: user.id, 
+        email: user.email,
+        role: user.role  // Add role to the token
+      },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
@@ -438,21 +465,20 @@ app.post('/api/login', async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000
     });
 
-    // In index.js, modify the login endpoint response
-return res.json({ 
-  message: "Login successful", 
-  user: { 
-    id: user.id, 
-    name: user.name, 
-    email: user.email,
-    profile_picture: user.profile_picture,  // Add these
-    bio: user.bio,
-    location: user.location,
-    website: user.website
-  } 
- });
+    return res.json({ 
+      message: "Login successful", 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email,
+        profile_picture: user.profile_picture,  // Add these
+        bio: user.bio,
+        location: user.location,
+        website: user.website
+      } 
+    });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Login error details:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -467,6 +493,11 @@ app.post('/api/logout', (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
+// Add this test endpoint
+app.get('/api/admin/test', requireAdmin, (req, res) => {
+  res.json({ message: "Admin access granted" });
+});
+
 // Auth Check Endpoint
 app.get('/api/me', async (req, res) => {
   try {
@@ -476,7 +507,7 @@ app.get('/api/me', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     
     const [users] = await db.promise().query(
-      "SELECT id, name, email, profile_picture, bio, location, website FROM users WHERE id = ?", // Updated query
+      "SELECT id, name, email, role, profile_picture, bio, location, website FROM users WHERE id = ?",
       [decoded.id]
     );
 

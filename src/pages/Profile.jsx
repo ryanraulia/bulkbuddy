@@ -193,6 +193,17 @@ export default function Profile() {
                 </div>
               )}
               
+              {user.role === 'admin' && (
+                <div className="mt-4 p-4 bg-yellow-100 rounded-lg">
+                  <h3 className="text-lg font-semibold text-yellow-800">
+                    ⚙️ Administrator Account
+                  </h3>
+                  <p className="text-yellow-700 mt-2">
+                    You have full administrative privileges
+                  </p>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 {user.location && (
                   <div className="flex items-center">
