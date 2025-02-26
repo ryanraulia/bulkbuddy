@@ -16,7 +16,6 @@ const fs = require('fs'); // Add this import
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
@@ -133,28 +132,51 @@ Message: ${message}
   }
 });
 
-// Get recipe search results
+// Update the /api/recipes/search endpoint in server/index.js
 app.get('/api/recipes/search', async (req, res) => {
   try {
     const { query } = req.query;
-    if (!query) return res.status(400).json({ error: 'Search query required' });
+    const combinedResults = [];
 
-    const response = await axios.get(
-      'https://api.spoonacular.com/recipes/complexSearch',
-      {
-        params: {
-          apiKey: SPOONACULAR_API_KEY,
-          query: query,
-          number: 12,
-          addRecipeInformation: true,
-          instructionsRequired: true
+    if (query) {
+      // Spoonacular results
+      const spoonacularResponse = await axios.get(
+        'https://api.spoonacular.com/recipes/complexSearch',
+        {
+          params: {
+            apiKey: SPOONACULAR_API_KEY,
+            query: query,
+            number: 8,
+            addRecipeInformation: true,
+            instructionsRequired: true
+          }
         }
-      }
+      );
+      combinedResults.push(...spoonacularResponse.data.results);
+    }
+
+    // User recipes
+    const [userRecipes] = await db.promise().query(
+      `SELECT id, title, image, calories, protein, fat, carbs, ingredients 
+       FROM recipes 
+       WHERE source = 'user' 
+         AND status = 'approved' 
+         AND LOWER(title) LIKE LOWER(?)`,
+      [`%${query}%`]
     );
 
-    res.json(response.data.results);
+    // Add safe handling for ingredients
+    combinedResults.push(...userRecipes.map(recipe => ({
+      ...recipe,
+      source: 'user',
+      extendedIngredients: recipe.ingredients 
+        ? recipe.ingredients.split('\n').map(ing => ({ original: ing }))
+        : []
+    })));
+
+    res.json(combinedResults);
   } catch (error) {
-    console.error("Recipe search error:", error.response?.data || error.message);
+    console.error("Recipe search error:", error);
     res.status(500).json({ error: 'Error searching recipes' });
   }
 });
@@ -270,40 +292,70 @@ app.get('/api/mealplan', async (req, res) => {
     // Log for debugging
     console.log('Spoonacular API Params:', params);
 
-    const response = await axios.get(
+    // Fetch Spoonacular meal plan
+    const spoonacularResponse = await axios.get(
       'https://api.spoonacular.com/mealplanner/generate',
       { params }
     );
 
+    // Fetch user recipes
+    const [userRecipes] = await db.promise().query(
+      `SELECT id, title, image, calories, protein, fat, carbs, instructions, ingredients 
+       FROM recipes 
+       WHERE source = 'user' 
+         AND status = 'approved'`
+    );
+
+    // Combine Spoonacular and user recipes
+    const combinedMeals = [
+      ...spoonacularResponse.data.meals,
+      ...userRecipes.map(recipe => ({
+        id: `user-${recipe.id}`,
+        title: recipe.title,
+        image: recipe.image,
+        calories: recipe.calories,
+        protein: recipe.protein,
+        fat: recipe.fat,
+        carbs: recipe.carbs,
+        instructions: recipe.instructions,
+        extendedIngredients: recipe.ingredients.split('\n').map(ing => ({ original: ing }))
+      }))
+    ];
+
     // Get detailed nutritional information for each meal
     const mealsWithNutrition = await Promise.all(
-      response.data.meals.map(async (meal) => {
-        const nutritionResponse = await axios.get(
-          `https://api.spoonacular.com/recipes/${meal.id}/nutritionWidget.json`,
-          {
-            params: {
-              apiKey: SPOONACULAR_API_KEY
+      combinedMeals.map(async (meal) => {
+        if (meal.id.startsWith('user-')) {
+          // User recipe
+          return meal;
+        } else {
+          // Spoonacular recipe
+          const nutritionResponse = await axios.get(
+            `https://api.spoonacular.com/recipes/${meal.id}/nutritionWidget.json`,
+            {
+              params: {
+                apiKey: SPOONACULAR_API_KEY
+              }
             }
-          }
-        );
-        return {
-          ...meal,
-          calories: parseFloat(nutritionResponse.data.calories)
-        };
+          );
+          return {
+            ...meal,
+            calories: parseFloat(nutritionResponse.data.calories)
+          };
+        }
       })
     );
 
     // Update the response with detailed nutrition info
-    response.data.meals = mealsWithNutrition;
-
+    spoonacularResponse.data.meals = mealsWithNutrition;
 
     // Add the filters to the response
-    response.data.filters = {
+    spoonacularResponse.data.filters = {
       diet: diet || 'none',
       intolerances: intolerances ? intolerances.split(',') : []
     };
 
-    res.json(response.data);
+    res.json(spoonacularResponse.data);
   } catch (error) {
     console.error("Error in /api/mealplan:", error.response?.data || error.message);
     res.status(500).json({
@@ -550,6 +602,8 @@ if (!fs.existsSync('uploads')) {
 
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/recipes', express.static(path.join(__dirname, 'uploads', 'recipes')));
+
 // Update profile endpoint
 app.put('/api/profile/update', upload.single('profile_picture'), async (req, res) => {
   try {
@@ -611,6 +665,168 @@ app.put('/api/profile/update', upload.single('profile_picture'), async (req, res
   }
 });
 
+// Add to server/index.js after other endpoints
+
+// Configure multer for recipe image uploads
+const recipeUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, path.join(__dirname, 'uploads/recipes'));
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'recipe-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+// Error handling middleware for file uploads
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: err.message });
+  } else if (err) {
+    return res.status(500).json({ error: err.message });
+  }
+  next();
+});
+
+// Create recipe uploads directory if it doesn't exist
+if (!fs.existsSync('uploads/recipes')) {
+  fs.mkdirSync('uploads/recipes', { recursive: true });
+}
+
+// Add this ABOVE the recipe submission endpoint
+app.use('/uploads/recipes', express.static(path.join(__dirname, 'uploads', 'recipes')));
+
+// Recipe submission endpoint
+app.post('/api/recipes/submit', recipeUpload.single('image'), async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    // Validate nutrition fields
+    const { title, instructions, calories, protein, fat, carbs, ingredients } = req.body;
+    if (!title || !instructions || !calories || !protein || !fat || !carbs || !ingredients) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const recipeData = {
+      user_id: decoded.id,
+      title,
+      instructions,
+      ingredients: JSON.parse(ingredients).map(ing => 
+        `${ing.amount} ${ing.unit} ${ing.name}`
+      ).join('\n'),
+      calories: parseFloat(calories),
+      protein: parseFloat(protein),
+      fat: parseFloat(fat),
+      carbs: parseFloat(carbs),
+      source: 'user',
+      status: 'pending', // Force status to pending for moderation
+      image: req.file ? `/uploads/recipes/${req.file.filename}` : null // Remove SERVER_URL prefix
+    };
+
+    const [result] = await db.promise().query(
+      "INSERT INTO recipes SET ?",
+      [recipeData]
+    );
+
+    res.json({ 
+      success: true, 
+      recipeId: result.insertId 
+    });
+  } catch (error) {
+    console.error("Recipe submission error:", error);
+    res.status(500).json({ error: "Error submitting recipe" });
+  }
+});
+
+// Update the user recipe endpoint
+app.get('/api/user-recipe/:id', async (req, res) => {
+  try {
+    const [recipes] = await db.promise().query(
+      `SELECT *, 
+       ingredients AS extendedIngredients,
+       CONCAT('User Submitted Recipe • ', status) as sourceText
+       FROM recipes 
+       WHERE id = ?`,
+      [req.params.id]
+    );
+
+    if (recipes.length === 0) return res.status(404).json({ error: "Recipe not found" });
+
+    const recipe = {
+      ...recipes[0],
+      title: recipes[0].title,
+      extendedIngredients: recipes[0].ingredients 
+        ? recipes[0].ingredients.split('\n').map(ing => ({ original: ing }))
+        : [],
+      instructions: recipes[0].instructions || 'No instructions provided',
+      image: recipes[0].image || '/default-food.jpg'
+    };
+
+    res.json(recipe);
+  } catch (error) {
+    console.error("User recipe error:", error);
+    res.status(500).json({ error: 'Error fetching recipe' });
+  }
+});
+
+// Add after existing endpoints in server/index.js
+
+// Get pending recipes
+app.get('/api/admin/pending-recipes', requireAdmin, async (req, res) => {
+  try {
+    const [recipes] = await db.promise().query(
+      `SELECT id, title, image, calories, protein, fat, carbs, ingredients, created_at 
+       FROM recipes 
+       WHERE status = 'pending' 
+         AND source = 'user'`
+    );
+    
+    res.json(recipes.map(recipe => ({
+      ...recipe,
+      ingredients: recipe.ingredients.split('\n')
+    })));
+  } catch (error) {
+    console.error("Pending recipes error:", error);
+    res.status(500).json({ error: 'Error fetching pending recipes' });
+  }
+});
+
+app.options('/api/admin/approve-recipe/:id', cors());
+
+
+// Approve recipe
+app.put('/api/admin/approve-recipe/:id', requireAdmin, async (req, res) => {
+  try {
+    const [result] = await db.promise().query(
+      "UPDATE recipes SET status = 'approved' WHERE id = ?",
+      [req.params.id]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Recipe not found" });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Approve recipe error:", error);
+    res.status(500).json({ error: 'Error approving recipe' });
+  }
+});
+
+// Existing code...
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

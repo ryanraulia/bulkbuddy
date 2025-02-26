@@ -1,9 +1,31 @@
-import React from 'react';
+// src/components/buttons/SubmitRecipeButton.jsx
+import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import RecipeForm from '../forms/RecipeForm';
 
-export default function SubmitRecipeButton() {
+const SubmitRecipeButton = () => {
+  const [showForm, setShowForm] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  const handleClick = () => {
+    if (!isAuthenticated) {
+      alert('Please login to submit a recipe');
+      return;
+    }
+    setShowForm(true);
+  };
+
   return (
-    <button className="bg-teal-500 hover:bg-teal-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200">
-      Submit Recipe
-    </button>
+    <>
+      <button
+        onClick={handleClick}
+        className="bg-yellow-500 text-gray-900 px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
+      >
+        Submit Your Recipe
+      </button>
+      {showForm && <RecipeForm onClose={() => setShowForm(false)} />}
+    </>
   );
-}
+};
+
+export default SubmitRecipeButton;

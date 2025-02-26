@@ -5,11 +5,12 @@ import LoginButton from '../buttons/LoginButton';
 import SignUpButton from '../buttons/SignUpButton';
 import SubmitRecipeButton from '../buttons/SubmitRecipeButton';
 import AuthModal from './AuthModal';
+import { useAuth } from '../../context/AuthContext'; // Corrected import path
 
 export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
-  const [user, setUser] = useState(null);
+  const { user, setUser } = useAuth(); // Use useAuth hook
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,7 +28,7 @@ export default function Header() {
       }
     };
     checkAuth();
-  }, []);
+  }, [setUser]);
 
   const handleLoginClick = () => {
     setShowLogin(true);
@@ -74,7 +75,7 @@ export default function Header() {
     }
   };
 
-   return (
+  return (
     <header className="bg-slate-900 border-b-2 border-amber-500 text-white py-5 shadow-lg" role="banner">
       <nav className="container mx-auto px-6 flex justify-between items-center" aria-label="Main navigation">
         <Link 
@@ -105,6 +106,11 @@ export default function Header() {
                 <span>{label}</span>
               </Link>
             ))}
+            {user?.role === 'admin' && (
+              <Link to="/admin" className="text-yellow-400 hover:text-yellow-300">
+                Admin
+              </Link>
+            )}
           </div>
 
           <div className="flex space-x-5">

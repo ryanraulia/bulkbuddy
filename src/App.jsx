@@ -9,6 +9,8 @@ import Tips from './pages/Tips.jsx';
 import Profile from './pages/Profile.jsx'; 
 import SearchResults from './pages/SearchResults'; 
 import Layout from './components/layout/Layout.jsx'; 
+import AdminPage from './pages/Admin';
+
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/profile" element={<Profile />} /> 
           <Route path="/search" element={<SearchResults />} /> 
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </Layout>
     </Router>

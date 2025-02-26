@@ -10,10 +10,25 @@ const RecipeModal = ({ recipeId, onClose }) => {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        const response = await axios.get(`/api/recipe/${recipeId}`);
-        setRecipe(response.data);
+        // First try fetching as user recipe
+        const response = await axios.get(`/api/user-recipe/${recipeId}`);
+        if (response.data) {
+          setRecipe({
+            ...response.data,
+            source: 'user'
+          });
+        }
       } catch (error) {
-        console.error('Error fetching recipe:', error);
+        // Fallback to Spoonacular recipe
+        try {
+          const spoonacularResponse = await axios.get(`/api/recipe/${recipeId}`);
+          setRecipe({
+            ...spoonacularResponse.data,
+            source: 'spoonacular'
+          });
+        } catch (spoonacularError) {
+          console.error('Error fetching recipe:', spoonacularError);
+        }
       } finally {
         setLoading(false);
       }
@@ -30,6 +45,10 @@ const RecipeModal = ({ recipeId, onClose }) => {
     setIsNutritionModalOpen(false);
   };
 
+  const imageUrl = recipe?.image?.startsWith('/uploads')
+    ? `http://localhost:5000${recipe.image}?${Date.now()}`
+    : recipe?.image;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
       <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -40,7 +59,14 @@ const RecipeModal = ({ recipeId, onClose }) => {
         ) : (
           <>
             <div className="flex justify-between items-start mb-4">
-              <h2 className="text-2xl font-bold text-yellow-400">{recipe.title}</h2>
+              <div>
+                <h2 className="text-2xl font-bold text-yellow-400">{recipe.title}</h2>
+                {recipe.source === 'user' && (
+                  <p className="text-sm text-gray-400 mt-1">
+                    Status: {recipe.status || 'pending'}
+                  </p>
+                )}
+              </div>
               <button 
                 onClick={onClose}
                 className="text-gray-400 hover:text-white text-2xl"
@@ -49,18 +75,31 @@ const RecipeModal = ({ recipeId, onClose }) => {
               </button>
             </div>
             
-            <img 
-              src={recipe.image} 
-              alt={recipe.title} 
-              className="w-full h-64 object-cover rounded-lg mb-4"
-            />
+            {recipe.image && (
+              <img
+                src={imageUrl}
+                alt={recipe.title}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+                onError={(e) => {
+                  e.target.style.display = 'none'; // Hide broken images
+                }}
+              />
+            )}
+            {!recipe.image && (
+              <div className="w-full h-48 bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
+                <span className="text-gray-400">No Image Available</span>
+              </div>
+            )}
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-lg font-semibold text-yellow-400 mb-2">Ingredients</h3>
                 <ul className="list-disc list-inside space-y-1">
-                  {recipe.extendedIngredients.map(ingredient => (
-                    <li key={ingredient.id} className="text-gray-300">
+                  {recipe.extendedIngredients.map((ingredient, i) => (
+                    <li 
+                      key={ingredient.id || `${i}-${ingredient.name}`} // Add unique key
+                      className="text-gray-300"
+                    >
                       {ingredient.original}
                     </li>
                   ))}
