@@ -1,12 +1,27 @@
 // src/pages/Home.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaUtensils, FaAppleAlt, FaCheck } from 'react-icons/fa';
 
 export default function Home() {
   const [targetCalories, setTargetCalories] = useState('');
   const [diet, setDiet] = useState('');
   const [intolerances, setIntolerances] = useState([]);
   const navigate = useNavigate();
+
+  const dietaryOptions = [
+    { value: "", label: "Select Dietary Preference (Optional)" },
+    { value: "vegetarian", label: "Vegetarian" },
+    { value: "vegan", label: "Vegan" },
+    { value: "gluten free", label: "Gluten Free" },
+    { value: "ketogenic", label: "Ketogenic" },
+    { value: "paleo", label: "Paleo" }
+  ];
+
+  const intoleranceOptions = [
+    'dairy', 'egg', 'gluten', 'peanut', 'seafood', 
+    'sesame', 'shellfish', 'soy', 'sulfite', 'tree nut'
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,76 +44,170 @@ export default function Home() {
     }
   };
 
+  const toggleIntolerance = (intolerance) => {
+    if (intolerances.includes(intolerance)) {
+      setIntolerances(intolerances.filter(i => i !== intolerance));
+    } else {
+      setIntolerances([...intolerances, intolerance]);
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
-      <div className="border border-yellow-500 bg-gray-800 rounded-2xl shadow-2xl p-10 text-center max-w-xl w-full relative">
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 px-4 py-1 rounded-full text-gray-900 font-bold text-sm shadow-lg">
-          Start Your Bulk Today!
-        </div>
-        <h1 className="text-4xl font-extrabold mb-4 text-yellow-400">Welcome to BulkBuddy</h1>
-        <p className="text-gray-300 text-lg">
-          Gain muscle the right way! Use our Meal Plan Generator to start your bulking journey.
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-800 via-gray-900 to-gray-800 text-white py-16 px-4">
+      {/* Hero Section */}
+      <section className="text-center max-w-4xl mx-auto mb-12">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+          <span className="text-blue-300">Power</span> Your <span className="text-blue-300">Fitness</span> Journey
+        </h1>
+        <p className="text-xl text-gray-200 max-w-3xl mx-auto">
+          Personalized meal plans designed to help you reach your fitness goals with precision nutrition
         </p>
+      </section>
 
-        {/* Meal Plan Form */}
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          {/* Existing calorie input */}
-          <input
-            type="number"
-            placeholder="Enter target calories (e.g., 2500)"
-            value={targetCalories}
-            onChange={(e) => setTargetCalories(e.target.value)}
-            className="w-full p-3 bg-gray-900 text-white border border-gray-700 rounded-lg focus:border-yellow-400 focus:ring-2 focus:ring-yellow-500 transition"
-            required
-          />
-
-          {/* Dietary Preferences Dropdown */}
-          <select
-            value={diet}
-            onChange={(e) => setDiet(e.target.value)}
-            className="w-full p-3 bg-gray-900 text-white border border-gray-700 rounded-lg focus:border-yellow-400 focus:ring-2 focus:ring-yellow-500 transition"
-          >
-            <option value="">Select Dietary Preference (Optional)</option>
-            <option value="vegetarian">Vegetarian</option>
-            <option value="vegan">Vegan</option>
-            <option value="gluten free">Gluten Free</option>
-            <option value="ketogenic">Ketogenic</option>
-            <option value="paleo">Paleo</option>
-          </select>
-
-          {/* Intolerances Checkboxes */}
-          <div className="bg-gray-900 p-4 rounded-lg border border-gray-700">
-            <h3 className="text-yellow-400 mb-2">Dietary Restrictions (Optional)</h3>
-            <div className="grid grid-cols-2 gap-2 text-left">
-              {['dairy', 'egg', 'gluten', 'peanut', 'seafood', 'sesame', 'shellfish', 'soy', 'sulfite', 'tree nut'].map((intolerance) => (
-                <label key={intolerance} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    value={intolerance}
-                    checked={intolerances.includes(intolerance)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setIntolerances([...intolerances, e.target.value]);
-                      } else {
-                        setIntolerances(intolerances.filter(i => i !== e.target.value));
-                      }
-                    }}
-                    className="form-checkbox h-4 w-4 rounded bg-gray-800 border-gray-600 checked:bg-yellow-500 checked:border-yellow-500 focus:ring-yellow-500/50 focus:ring-2 transition-colors duration-200"
-                  />
-                  <span className="capitalize">{intolerance}</span>
-                </label>
-              ))}
+      {/* Main Card */}
+      <section className="w-full max-w-2xl mx-auto" aria-labelledby="meal-plan-heading">
+        <div className="bg-gray-900 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+          {/* Card Header */}
+          <div className="bg-gradient-to-r from-blue-700 to-blue-600 p-6 flex items-center justify-between">
+            <h2 id="meal-plan-heading" className="text-2xl font-bold text-white flex items-center">
+              <FaUtensils className="mr-3" aria-hidden="true" />
+              Meal Plan Generator
+            </h2>
+            <div className="bg-blue-800 text-white text-sm font-medium py-1 px-3 rounded-full">
+              Free
             </div>
           </div>
+          
+          {/* Card Content */}
+          <div className="p-6">
+            <p className="mb-6 text-gray-300">
+              Create your personalized meal plan by entering your daily calorie target and dietary preferences below.
+            </p>
 
-          <button
-            type="submit"
-            className="w-full bg-yellow-500 text-gray-900 font-bold p-3 rounded-lg hover:bg-yellow-400 transition shadow-md"
-          >
-            Generate Meal Plan
-          </button>
-        </form>
-      </div>
-    </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Calorie Input */}
+              <div>
+                <label htmlFor="calorie-input" className="block text-sm font-medium text-gray-200 mb-2">
+                  Daily Calorie Target <span className="text-blue-400">*</span>
+                </label>
+                <div className="relative rounded-md shadow-sm">
+                  <input
+                    id="calorie-input"
+                    type="number"
+                    placeholder="Enter target calories (e.g., 2500)"
+                    value={targetCalories}
+                    onChange={(e) => setTargetCalories(e.target.value)}
+                    className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    required
+                    aria-required="true"
+                    min="1000"
+                    max="10000"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-400">kcal</span>
+                  </div>
+                </div>
+                <p className="mt-2 text-sm text-gray-400">Recommended for bulking: current maintenance + 300-500 calories</p>
+              </div>
+
+              {/* Dietary Preferences Dropdown */}
+              <div>
+                <label htmlFor="diet-select" className="block text-sm font-medium text-gray-200 mb-2">
+                  Dietary Preference
+                </label>
+                <select
+                  id="diet-select"
+                  value={diet}
+                  onChange={(e) => setDiet(e.target.value)}
+                  className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  aria-label="Select your dietary preference"
+                >
+                  {dietaryOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Intolerances Checkboxes */}
+              <div>
+                <fieldset className="border border-gray-700 rounded-lg p-4 bg-gray-800">
+                  <legend className="text-sm font-medium text-blue-400 px-2">Dietary Restrictions (Optional)</legend>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
+                    {intoleranceOptions.map((intolerance) => (
+                      <div key={intolerance} className="relative flex items-start">
+                        <div className="flex items-center h-5">
+                          <input
+                            id={`intolerance-${intolerance}`}
+                            type="checkbox"
+                            value={intolerance}
+                            checked={intolerances.includes(intolerance)}
+                            onChange={() => toggleIntolerance(intolerance)}
+                            className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-600 rounded"
+                            aria-labelledby={`intolerance-${intolerance}-label`}
+                          />
+                        </div>
+                        <div className="ml-2 text-sm">
+                          <label 
+                            id={`intolerance-${intolerance}-label`} 
+                            htmlFor={`intolerance-${intolerance}`} 
+                            className="text-gray-200 capitalize cursor-pointer"
+                          >
+                            {intolerance}
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </fieldset>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium p-3 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 shadow-md"
+                aria-label="Generate your meal plan"
+              >
+                <FaCheck className="mr-2" aria-hidden="true" />
+                Generate Meal Plan
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="mt-16 max-w-4xl mx-auto text-center">
+        <h2 className="text-2xl font-bold mb-8 text-blue-300">Why Choose BulkBuddy?</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Personalized Plans",
+              description: "Tailored meal plans based on your specific calorie needs and dietary preferences.",
+              icon: "🎯"
+            },
+            {
+              title: "Nutrition Focused",
+              description: "Each meal plan is designed to provide optimal macronutrient balance for muscle growth.",
+              icon: "💪"
+            },
+            {
+              title: "Easy to Follow",
+              description: "Simple recipes with detailed instructions to make meal prep straightforward.",
+              icon: "🍽️"
+            }
+          ].map((benefit, index) => (
+            <div key={index} className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition-colors duration-300">
+              <div className="text-3xl mb-4">{benefit.icon}</div>
+              <h3 className="text-xl font-bold mb-2">{benefit.title}</h3>
+              <p className="text-gray-300">{benefit.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }

@@ -13,10 +13,11 @@ export default function Profile() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userRecipes, setUserRecipes] = useState([]); // Add state for user recipes
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndRecipes = async () => {
       try {
         const response = await fetch('/api/me', { credentials: 'include' });
         if (response.ok) {
@@ -28,14 +29,24 @@ export default function Profile() {
             location: userData.location || '',
             website: userData.website || ''
           });
+
+          // Fetch user's recipes
+          const recipesResponse = await fetch('/api/users/recipes', { 
+            credentials: 'include' 
+          });
+          if (recipesResponse.ok) {
+            const recipesData = await recipesResponse.json();
+            setUserRecipes(recipesData);
+          }
         } else {
           navigate('/');
         }
       } catch (error) {
-        console.error("Failed to fetch user:", error);
+        console.error("Failed to fetch data:", error);
       }
     };
-    fetchUser();
+    
+    fetchUserAndRecipes();
   }, [navigate]);
 
   const handleUpdateProfile = async (e) => {
@@ -244,6 +255,51 @@ export default function Profile() {
           >
             Go Back to Home
           </button>
+        </div>
+
+        {/* User Recipes Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Your Submitted Recipes
+          </h2>
+          
+          {userRecipes.length === 0 ? (
+            <p className="text-gray-600">No recipes submitted yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {userRecipes.map(recipe => (
+                <div 
+                  key={recipe.id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden"
+                >
+                  {recipe.image && (
+                    <img
+                      src={recipe.image.startsWith('/uploads') 
+                        ? `http://localhost:5000${recipe.image}`
+                        : recipe.image}
+                      alt={recipe.title}
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-lg mb-2">{recipe.title}</h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">
+                        {new Date(recipe.created_at).toLocaleDateString()}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-sm ${
+                        recipe.status === 'approved' 
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {recipe.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

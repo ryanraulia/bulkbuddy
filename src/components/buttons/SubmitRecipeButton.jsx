@@ -1,4 +1,3 @@
-// src/components/buttons/SubmitRecipeButton.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import RecipeForm from '../forms/RecipeForm';
@@ -19,7 +18,7 @@ const SubmitRecipeButton = () => {
     <>
       <button
         onClick={handleClick}
-        className="bg-yellow-500 text-gray-900 px-6 py-3 rounded-lg hover:bg-yellow-400 transition-colors"
+        className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         Submit Your Recipe
       </button>

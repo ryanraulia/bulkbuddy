@@ -292,70 +292,40 @@ app.get('/api/mealplan', async (req, res) => {
     // Log for debugging
     console.log('Spoonacular API Params:', params);
 
-    // Fetch Spoonacular meal plan
-    const spoonacularResponse = await axios.get(
+    const response = await axios.get(
       'https://api.spoonacular.com/mealplanner/generate',
       { params }
     );
 
-    // Fetch user recipes
-    const [userRecipes] = await db.promise().query(
-      `SELECT id, title, image, calories, protein, fat, carbs, instructions, ingredients 
-       FROM recipes 
-       WHERE source = 'user' 
-         AND status = 'approved'`
-    );
-
-    // Combine Spoonacular and user recipes
-    const combinedMeals = [
-      ...spoonacularResponse.data.meals,
-      ...userRecipes.map(recipe => ({
-        id: `user-${recipe.id}`,
-        title: recipe.title,
-        image: recipe.image,
-        calories: recipe.calories,
-        protein: recipe.protein,
-        fat: recipe.fat,
-        carbs: recipe.carbs,
-        instructions: recipe.instructions,
-        extendedIngredients: recipe.ingredients.split('\n').map(ing => ({ original: ing }))
-      }))
-    ];
-
     // Get detailed nutritional information for each meal
     const mealsWithNutrition = await Promise.all(
-      combinedMeals.map(async (meal) => {
-        if (meal.id.startsWith('user-')) {
-          // User recipe
-          return meal;
-        } else {
-          // Spoonacular recipe
-          const nutritionResponse = await axios.get(
-            `https://api.spoonacular.com/recipes/${meal.id}/nutritionWidget.json`,
-            {
-              params: {
-                apiKey: SPOONACULAR_API_KEY
-              }
+      response.data.meals.map(async (meal) => {
+        const nutritionResponse = await axios.get(
+          `https://api.spoonacular.com/recipes/${meal.id}/nutritionWidget.json`,
+          {
+            params: {
+              apiKey: SPOONACULAR_API_KEY
             }
-          );
-          return {
-            ...meal,
-            calories: parseFloat(nutritionResponse.data.calories)
-          };
-        }
+          }
+        );
+        return {
+          ...meal,
+          calories: parseFloat(nutritionResponse.data.calories)
+        };
       })
     );
 
     // Update the response with detailed nutrition info
-    spoonacularResponse.data.meals = mealsWithNutrition;
+    response.data.meals = mealsWithNutrition;
+
 
     // Add the filters to the response
-    spoonacularResponse.data.filters = {
+    response.data.filters = {
       diet: diet || 'none',
       intolerances: intolerances ? intolerances.split(',') : []
     };
 
-    res.json(spoonacularResponse.data);
+    res.json(response.data);
   } catch (error) {
     console.error("Error in /api/mealplan:", error.response?.data || error.message);
     res.status(500).json({
@@ -364,6 +334,7 @@ app.get('/api/mealplan', async (req, res) => {
     });
   }
 });
+
 
 app.get('/api/recipe/:id', async (req, res) => {
   try {
@@ -826,6 +797,28 @@ app.put('/api/admin/approve-recipe/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// Get user's submitted recipes
+app.get('/api/users/recipes', async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    const [recipes] = await db.promise().query(
+      `SELECT id, title, image, calories, status, created_at 
+       FROM recipes 
+       WHERE user_id = ? 
+       ORDER BY created_at DESC`,
+      [decoded.id]
+    );
+
+    res.json(recipes);
+  } catch (error) {
+    console.error("Error fetching user recipes:", error);
+    res.status(500).json({ error: 'Error fetching recipes' });
+  }
+});
 // Existing code...
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
