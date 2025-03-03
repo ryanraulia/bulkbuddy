@@ -295,6 +295,9 @@ export default function Profile() {
                         {recipe.status}
                       </span>
                     </div>
+                    <div className="mt-2 text-sm text-gray-600">
+                      Submitted by: {recipe.username}
+                    </div>
                   </div>
                 </div>
               ))}

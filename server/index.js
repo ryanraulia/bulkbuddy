@@ -132,7 +132,7 @@ Message: ${message}
   }
 });
 
-// Update the /api/recipes/search endpoint in server/index.js
+// Update the /api/recipes/search endpoint
 app.get('/api/recipes/search', async (req, res) => {
   try {
     const { query } = req.query;
@@ -152,23 +152,30 @@ app.get('/api/recipes/search', async (req, res) => {
           }
         }
       );
-      combinedResults.push(...spoonacularResponse.data.results);
+      combinedResults.push(...spoonacularResponse.data.results.map(r => ({
+        ...r,
+        source: 'spoonacular'
+      })));
     }
 
     // User recipes
     const [userRecipes] = await db.promise().query(
-      `SELECT id, title, image, calories, protein, fat, carbs, ingredients 
+      `SELECT recipes.id AS recipe_id, recipes.title, recipes.image, recipes.calories, recipes.protein, recipes.fat, recipes.carbs, recipes.ingredients, recipes.created_at, users.name AS username
        FROM recipes 
-       WHERE source = 'user' 
-         AND status = 'approved' 
-         AND LOWER(title) LIKE LOWER(?)`,
+       JOIN users ON recipes.user_id = users.id
+       WHERE recipes.source = 'user' 
+         AND recipes.status = 'approved' 
+         AND LOWER(recipes.title) LIKE LOWER(?)`,
       [`%${query}%`]
     );
 
-    // Add safe handling for ingredients
+    // Add safe handling for ingredients and image URLs
+    const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
     combinedResults.push(...userRecipes.map(recipe => ({
       ...recipe,
+      id: recipe.recipe_id, // Use the alias for the recipe ID
       source: 'user',
+      image: recipe.image ? `${serverUrl}${recipe.image}` : '/default-food.jpg',
       extendedIngredients: recipe.ingredients 
         ? recipe.ingredients.split('\n').map(ing => ({ original: ing }))
         : []
@@ -181,7 +188,7 @@ app.get('/api/recipes/search', async (req, res) => {
   }
 });
 
-// Get random popular recipes for homepage
+// Update the /api/recipes/random endpoint
 app.get('/api/recipes/random', async (req, res) => {
   try {
     const response = await axios.get(
@@ -194,11 +201,42 @@ app.get('/api/recipes/random', async (req, res) => {
         }
       }
     );
-    
-    res.json(response.data.recipes);
+
+    const recipes = response.data.recipes.map(r => ({
+      ...r,
+      source: 'spoonacular'
+    }));
+
+    res.json(recipes);
   } catch (error) {
     console.error("Random recipes error:", error.response?.data || error.message);
-    res.status(500).json({ error: 'Error fetching recipes' });
+    res.status(500).json({ error: 'Error fetching random recipes' });
+  }
+});
+
+// Update the /api/recipes/user endpoint
+app.get('/api/recipes/user', async (req, res) => {
+  try {
+    const [recipes] = await db.promise().query(
+      `SELECT recipes.id, recipes.user_id, recipes.title, recipes.image, recipes.calories, recipes.status, recipes.created_at, users.name AS username
+       FROM recipes 
+       JOIN users ON recipes.user_id = users.id
+       WHERE recipes.source = 'user' 
+         AND recipes.status = 'approved'
+       ORDER BY recipes.created_at DESC`
+    );
+
+    const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+    const updatedRecipes = recipes.map(recipe => ({
+      ...recipe,
+      source: 'user',
+      image: recipe.image ? `${serverUrl}${recipe.image}` : '/default-food.jpg'
+    }));
+
+    res.json(updatedRecipes);
+  } catch (error) {
+    console.error("Error fetching user recipes:", error);
+    res.status(500).json({ error: 'Error fetching user recipes' });
   }
 });
 
@@ -738,6 +776,7 @@ app.get('/api/user-recipe/:id', async (req, res) => {
 
     const recipe = {
       ...recipes[0],
+      source: 'user',
       title: recipes[0].title,
       extendedIngredients: recipes[0].ingredients 
         ? recipes[0].ingredients.split('\n').map(ing => ({ original: ing }))
@@ -806,10 +845,11 @@ app.get('/api/users/recipes', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     
     const [recipes] = await db.promise().query(
-      `SELECT id, title, image, calories, status, created_at 
+      `SELECT recipes.id, recipes.title, recipes.image, recipes.calories, recipes.status, recipes.created_at, users.name AS username
        FROM recipes 
-       WHERE user_id = ? 
-       ORDER BY created_at DESC`,
+       JOIN users ON recipes.user_id = users.id
+       WHERE recipes.user_id = ? 
+       ORDER BY recipes.created_at DESC`,
       [decoded.id]
     );
 
@@ -817,6 +857,111 @@ app.get('/api/users/recipes', async (req, res) => {
   } catch (error) {
     console.error("Error fetching user recipes:", error);
     res.status(500).json({ error: 'Error fetching recipes' });
+  }
+});
+
+// Update the /api/recipes endpoint
+app.get('/api/recipes', async (req, res) => {
+  try {
+    const [recipes] = await db.promise().query(
+      `SELECT recipes.id, recipes.title, recipes.image, recipes.calories, recipes.status, recipes.created_at, users.name AS username
+       FROM recipes 
+       JOIN users ON recipes.user_id = users.id
+       ORDER BY recipes.created_at DESC`
+    );
+
+    // Add safe handling for image URLs
+    const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+    const updatedRecipes = recipes.map(recipe => ({
+      ...recipe,
+      source: 'user',
+      image: recipe.image ? `${serverUrl}${recipe.image}` : '/default-food.jpg'
+    }));
+
+    res.json(updatedRecipes);
+  } catch (error) {
+    console.error("Error fetching recipes:", error);
+    res.status(500).json({ error: 'Error fetching recipes' });
+  }
+});
+
+// Add this after the approve recipe endpoint in server/index.js
+app.delete('/api/admin/reject-recipe/:id', requireAdmin, async (req, res) => {
+  try {
+    // Get recipe details first
+    const [recipes] = await db.promise().query(
+      "SELECT image FROM recipes WHERE id = ?",
+      [req.params.id]
+    );
+
+    if (recipes.length === 0) {
+      return res.status(404).json({ error: "Recipe not found" });
+    }
+
+    const recipe = recipes[0];
+    
+    // Delete from database
+    const [result] = await db.promise().query(
+      "DELETE FROM recipes WHERE id = ?",
+      [req.params.id]
+    );
+
+    // Delete associated image file
+    if (recipe.image) {
+      const filename = path.basename(recipe.image);
+      const imagePath = path.join(__dirname, 'uploads/recipes', filename);
+      fs.unlink(imagePath, (err) => {
+        if (err) console.error("Error deleting image:", err);
+        else console.log("Deleted image:", filename);
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Reject recipe error:", error);
+    res.status(500).json({ error: 'Error rejecting recipe' });
+  }
+});
+app.delete('/api/recipes/:id', async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    if (!token) return res.status(401).json({ error: "Not authenticated" });
+    
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Get full recipe details
+    const [recipes] = await db.promise().query(
+      "SELECT user_id, image, source FROM recipes WHERE id = ?",
+      [req.params.id]
+    );
+
+    if (recipes.length === 0) return res.status(404).json({ error: "Recipe not found" });
+    const recipe = recipes[0];
+
+    // Prevent deletion of Spoonacular recipes
+    if (recipe.source !== 'user') {
+      return res.status(403).json({ error: "Cannot delete Spoonacular recipes" });
+    }
+
+    // Authorization check
+    if (decoded.role !== 'admin' && decoded.id !== recipe.user_id) {
+      return res.status(403).json({ error: "Unauthorized to delete this recipe" });
+    }
+
+    // Delete from database
+    await db.promise().query("DELETE FROM recipes WHERE id = ?", [req.params.id]);
+
+    // Delete image file if exists
+    if (recipe.image) {
+      const filename = path.basename(recipe.image);
+      const imagePath = path.join(__dirname, 'uploads/recipes', filename);
+      fs.unlink(imagePath, (err) => err && console.error("Error deleting image:", err));
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Delete recipe error:", error);
+    res.status(500).json({ error: 'Error deleting recipe' });
   }
 });
 // Existing code...

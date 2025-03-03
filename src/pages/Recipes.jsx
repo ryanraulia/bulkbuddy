@@ -3,19 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import RecipeCard from "../components/recipe/RecipeCard";
 import RecipeModal from "../components/recipe/RecipeModal";
+import { useAuth } from '../context/AuthContext'; // Import useAuth
 
 export default function Recipes() {
-  const [recipes, setRecipes] = useState([]);
+  const [randomRecipes, setRandomRecipes] = useState([]);
+  const [userRecipes, setUserRecipes] = useState([]);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth(); // Get user from AuthContext
 
   useEffect(() => {
-    const fetchRandomRecipes = async () => {
+    const fetchRecipes = async () => {
       try {
-        const response = await axios.get('/api/recipes/random');
-        setRecipes(response.data);
+        const [randomResponse, userResponse] = await Promise.all([
+          axios.get('/api/recipes/random'),
+          axios.get('/api/recipes/user')
+        ]);
+        setRandomRecipes(randomResponse.data);
+        setUserRecipes(userResponse.data);
       } catch (error) {
         console.error('Error fetching recipes:', error);
       } finally {
@@ -23,12 +30,17 @@ export default function Recipes() {
       }
     };
 
-    fetchRandomRecipes();
+    fetchRecipes();
   }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
     navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+  };
+
+  const handleDelete = (deletedId) => {
+    setUserRecipes(prev => prev.filter(r => r.id !== deletedId));
+    setRandomRecipes(prev => prev.filter(r => r.id !== deletedId));
   };
 
   return (
@@ -62,19 +74,36 @@ export default function Recipes() {
           </div>
         )}
 
-        {/* Recipe Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {recipes.map((recipe) => (
+        {/* Random Recipes Section */}
+        <h2 className="text-3xl font-bold text-yellow-400 mb-6">Popular Recipes</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+          {randomRecipes.map((recipe) => (
             <RecipeCard 
               key={recipe.id} 
               recipe={recipe}
+              user={user} // Pass user to RecipeCard
               onClick={setSelectedRecipe}
+              onDelete={handleDelete} // Pass handleDelete to RecipeCard
+            />
+          ))}
+        </div>
+
+        {/* User Recipes Section */}
+        <h2 className="text-3xl font-bold text-yellow-400 mb-6">User Submitted Recipes</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {userRecipes.map((recipe) => (
+            <RecipeCard 
+              key={recipe.id} 
+              recipe={recipe}
+              user={user} // Pass user to RecipeCard
+              onClick={setSelectedRecipe}
+              onDelete={handleDelete} // Pass handleDelete to RecipeCard
             />
           ))}
         </div>
 
         {/* No Results */}
-        {!loading && recipes.length === 0 && (
+        {!loading && randomRecipes.length === 0 && userRecipes.length === 0 && (
           <div className="text-center py-12 text-gray-400">
             No recipes found. Try a different search.
           </div>

@@ -38,6 +38,17 @@ const AdminPage = () => {
     }
   };
 
+  const handleReject = async (recipeId) => {
+    try {
+      await axios.delete(`/api/admin/reject-recipe/${recipeId}`, {
+        withCredentials: true
+      });
+      setPendingRecipes(pendingRecipes.filter(recipe => recipe.id !== recipeId));
+    } catch (err) {
+      setError('Failed to reject recipe');
+    }
+  };
+
   if (user?.role !== 'admin') {
     return (
       <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white text-center">
@@ -81,12 +92,20 @@ const AdminPage = () => {
                 <p><strong>Protein:</strong> {recipe.protein}g</p>
                 <p><strong>Carbs:</strong> {recipe.carbs}g</p>
                 <p><strong>Fat:</strong> {recipe.fat}g</p>
-                <button
-                  onClick={() => handleApprove(recipe.id)}
-                  className="mt-2 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  Approve Recipe
-                </button>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => handleApprove(recipe.id)}
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition-colors"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleReject(recipe.id)}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition-colors"
+                  >
+                    Reject
+                  </button>
+                </div>
               </div>
             </div>
           ))}
