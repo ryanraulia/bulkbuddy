@@ -15,6 +15,7 @@ export default function CalorieCalculator() {
   });
 
   const [results, setResults] = useState(null);
+  const [warning, setWarning] = useState(null);
 
   // Activity levels for the dropdown
   const activityLevels = [
@@ -40,6 +41,9 @@ export default function CalorieCalculator() {
   // Calculate results based on user inputs
   const calculateResults = () => {
     if (!validateInputs()) return;
+    
+    // Reset warning
+    setWarning(null);
 
     const {
       age, weight, height, gender, activityLevel,
@@ -66,12 +70,51 @@ export default function CalorieCalculator() {
         : 447.593 + (9.247 * w) + (3.098 * h) - (4.330 * a);
     }
 
-    // Calculate calorie needs
+    // Calculate maintenance calories
     const maintenance = bmr * activity;
-    const calorieAdjustment = (weeklyChange * 7700) / 7;
-    const totalCalories = goalType === 'surplus' 
-      ? maintenance + calorieAdjustment 
-      : maintenance - calorieAdjustment;
+    
+    // Calculate calorie adjustment (7700 calories per kg)
+    const requestedCalorieAdjustment = (weeklyChange * 7700) / 7;
+    
+    // Calculate target calories based on goal
+    let totalCalories = goalType === 'surplus' 
+      ? maintenance + requestedCalorieAdjustment 
+      : maintenance - requestedCalorieAdjustment;
+      
+    // Track if we adjusted calories and by how much
+    let adjustedCalories = false;
+    let actualWeeklyChange = weeklyChange;
+    
+    // Check if deficit is too aggressive (more than 25% below maintenance)
+    const maxHealthyDeficit = maintenance * 0.25;
+    if (goalType === 'deficit' && requestedCalorieAdjustment > maxHealthyDeficit) {
+      setWarning(`Your requested deficit of ${requestedCalorieAdjustment.toFixed(0)} calories is too aggressive. Maximum recommended deficit is ${maxHealthyDeficit.toFixed(0)} calories for healthy weight loss.`);
+      
+      if (totalCalories < maintenance - maxHealthyDeficit) {
+        adjustedCalories = true;
+        totalCalories = maintenance - maxHealthyDeficit;
+        actualWeeklyChange = (maxHealthyDeficit * 7) / 7700;
+      }
+    }
+    
+    // Ensure minimum calories aren't too low
+    const minCalories = gender === 'male' ? 1500 : 1200;
+    if (totalCalories < minCalories) {
+      adjustedCalories = true;
+      const originalCalories = totalCalories;
+      totalCalories = minCalories;
+      
+      // Recalculate actual weekly change based on the adjusted calories
+      const actualDeficit = maintenance - minCalories;
+      actualWeeklyChange = (actualDeficit * 7) / 7700;
+      
+      setWarning(`Calculated calories (${originalCalories.toFixed(0)}) were below the minimum recommended intake. Target calories have been adjusted to ${minCalories} calories, which will result in approximately ${actualWeeklyChange.toFixed(2)}kg ${goalType === 'deficit' ? 'loss' : 'gain'} per week instead of your target of ${weeklyChange}kg.`);
+    }
+    
+    // Calculate actual calorie adjustment after any adjustments
+    const actualCalorieAdjustment = goalType === 'surplus' 
+      ? totalCalories - maintenance
+      : maintenance - totalCalories;
 
     // Macro Breakdown: Fixed ratios for protein, fats, and carbs
     const protein = w * 2.2;  // Fixed at 2.2g/kg
@@ -81,13 +124,23 @@ export default function CalorieCalculator() {
     const fatCalories = totalCalories * fatPercentage;
     const fat = fatCalories / 9;
     const carbCalories = totalCalories - (protein * 4 + fatCalories);
-    const carbs = carbCalories / 4;
+    const carbs = Math.max(0, carbCalories / 4);
 
     // Time to Goal Calculation: Computes weeks to reach goal weight
-    const weightDifference = goalType === 'surplus' 
-      ? goalW - w 
-      : w - goalW;
-    const weeksToGoal = weightDifference / weeklyChange;
+    const weightDifference = Math.abs(goalW - w);
+    
+    // Determine if the goal is actually achievable
+    const isWeightLossGoal = goalW < w;
+    const isWeightGainGoal = goalW > w;
+    
+    // Check if goal direction matches selected goal type
+    if ((isWeightLossGoal && goalType === 'surplus') || 
+        (isWeightGainGoal && goalType === 'deficit')) {
+      setWarning(`Your goal weight and goal type don't match. You selected ${goalType === 'surplus' ? 'weight gain' : 'weight loss'} but your goal weight indicates ${isWeightLossGoal ? 'weight loss' : 'weight gain'}.`);
+    }
+    
+    // Calculate weeks to goal based on actual weekly change
+    const weeksToGoal = weightDifference / actualWeeklyChange;
 
     // Set the results state
     setResults({
@@ -97,7 +150,10 @@ export default function CalorieCalculator() {
       fat: fat.toFixed(0),
       carbs: carbs.toFixed(0),
       weeksToGoal: weeksToGoal.toFixed(1),
-      calorieAdjustment: Math.abs(calorieAdjustment).toFixed(0)
+      calorieAdjustment: actualCalorieAdjustment.toFixed(0),
+      originalTargetChange: weeklyChange,
+      actualWeeklyChange: actualWeeklyChange.toFixed(2),
+      adjustedCalories: adjustedCalories
     });
   };
 
@@ -175,9 +231,9 @@ export default function CalorieCalculator() {
 
         <div>
           <label className="block font-semibold text-white mb-1">
-            Target Weight Change ({inputs.goalType === 'surplus' ? 'Gain' : 'Loss'}) per Week (kg)
+            Target {inputs.goalType === 'surplus' ? 'Gain' : 'Loss'} per Week (kg)
           </label>
-          <input type="number" step="0.1" value={inputs.targetWeightChange}
+          <input type="number" step="0.1" min="0.1" max="2" value={inputs.targetWeightChange}
             onChange={(e) => handleInputChange('targetWeightChange', e.target.value)}
             className="w-full p-2 border border-gray-700 rounded text-white bg-gray-900" />
         </div>
@@ -195,6 +251,12 @@ export default function CalorieCalculator() {
         Calculate
       </button>
 
+      {warning && (
+        <div className="mt-4 p-3 bg-yellow-800 text-yellow-200 rounded">
+          <strong>Warning:</strong> {warning}
+        </div>
+      )}
+
       {results && (
         <div className="mt-6 space-y-3 text-white">
           <div className="text-lg font-semibold text-yellow-400">Results</div>
@@ -202,6 +264,15 @@ export default function CalorieCalculator() {
           <div>Target Calories: <span className="float-right">{results.totalCalories} kcal</span></div>
           <div>Daily {inputs.goalType === 'surplus' ? 'Surplus' : 'Deficit'}: 
             <span className="float-right">{results.calorieAdjustment} kcal</span></div>
+          
+          {results.adjustedCalories && (
+            <div className="bg-gray-700 p-2 rounded mt-2">
+              <div className="text-yellow-400">Adjusted Rate:</div>
+              <div>Target: {results.originalTargetChange}kg per week</div>
+              <div>Actual: {results.actualWeeklyChange}kg per week</div>
+            </div>
+          )}
+          
           <div className="pt-3 border-t border-gray-700">
             Protein (2.2g/kg): <span className="float-right">{results.protein}g</span>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaUtensils, FaCalculator, FaEnvelope, FaBookOpen, FaLightbulb, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import { FaUtensils, FaCalculator, FaEnvelope, FaBookOpen, FaLightbulb, FaUser, FaSignOutAlt, FaMoon, FaSun } from 'react-icons/fa';
 import LoginButton from '../buttons/LoginButton';
 import SignUpButton from '../buttons/SignUpButton';
 import SubmitRecipeButton from '../buttons/SubmitRecipeButton';
@@ -11,6 +11,7 @@ export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -68,6 +69,10 @@ export default function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   const navItems = [
     { to: "/", icon: FaUtensils, label: "Home" },
     { to: "/calculators", icon: FaCalculator, label: "Calculators" },
@@ -77,23 +82,23 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-gray-900 text-white py-4 shadow-lg sticky top-0 z-50" role="banner">
+    <header className={`py-4 shadow-lg sticky top-0 z-50 ${darkMode ? 'bg-[#1E1E1E] text-[#E0E0E0]' : 'bg-[#F8F9FA] text-[#212529]'}`} role="banner">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link 
             to="/" 
-            className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2 transition-colors duration-200 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2"
+            className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2"
             aria-label="BulkBuddy Home"
           >
-            <FaUtensils className="text-blue-400" aria-hidden="true" /> 
-            <span className="text-blue-300">Bulk</span>
+            <FaUtensils className="text-[#007BFF]" aria-hidden="true" /> 
+            <span className="text-[#007BFF]">Bulk</span>
             <span>Buddy</span>
           </Link>
 
           {/* Mobile menu button */}
           <button 
-            className="md:hidden bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2 transition-colors"
+            className="md:hidden bg-[#FAFAFA] hover:bg-[#F0F0F0] focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2 transition-colors"
             onClick={toggleMobileMenu}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
@@ -115,10 +120,10 @@ export default function Header() {
                 <li key={label} role="none">
                   <Link
                     to={to}
-                    className="flex items-center gap-2 hover:bg-gray-800 rounded-lg px-3 py-2 transition-colors duration-200 text-gray-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex items-center gap-2 hover:bg-[#F0F0F0] rounded-lg px-3 py-2 transition-colors duration-200 text-[#212529] hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500"
                     role="menuitem"
                   >
-                    <Icon className="text-blue-400 text-lg" aria-hidden="true" />
+                    <Icon className="text-[#007BFF] text-lg" aria-hidden="true" />
                     <span>{label}</span>
                   </Link>
                 </li>
@@ -127,7 +132,7 @@ export default function Header() {
                 <li role="none">
                   <Link 
                     to="/admin" 
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 rounded-lg px-3 py-2 transition-colors duration-200 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex items-center gap-2 bg-[#007BFF] hover:bg-[#0056b3] rounded-lg px-3 py-2 transition-colors duration-200 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
                     role="menuitem"
                   >
                     Admin
@@ -139,23 +144,23 @@ export default function Header() {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <SubmitRecipeButton className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <SubmitRecipeButton className="bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             
             {user ? (
               <div className="flex items-center gap-3">
                 <Link 
                   to="/profile" 
-                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex items-center gap-2 bg-[#FAFAFA] hover:bg-[#F0F0F0] rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   aria-label="View Profile"
                 >
-                  <div className="bg-blue-600 rounded-full p-1">
+                  <div className="bg-[#007BFF] rounded-full p-1">
                     <FaUser className="text-white text-sm" aria-hidden="true" />
                   </div>
                   <span>{user.username || 'Profile'}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex items-center gap-2 bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   aria-label="Log out of your account"
                 >
                   <FaSignOutAlt aria-hidden="true" />
@@ -166,15 +171,24 @@ export default function Header() {
               <div className="flex items-center gap-3">
                 <LoginButton 
                   onClick={handleLoginClick} 
-                  className="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                  className="bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 />
                 <SignUpButton 
                   onClick={handleSignUpClick} 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                  className="bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 />
               </div>
             )}
           </div>
+
+          {/* Dark Mode Toggle */}
+          <button 
+            onClick={toggleDarkMode} 
+            className="ml-4 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Toggle dark mode"
+          >
+            {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-600" />}
+          </button>
         </div>
 
         {/* Mobile Navigation Menu */}
@@ -186,11 +200,11 @@ export default function Header() {
                   <li key={label} role="none">
                     <Link
                       to={to}
-                      className="flex items-center gap-3 hover:bg-gray-800 rounded-lg p-3 transition-colors duration-200 text-gray-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex items-center gap-3 hover:bg-[#F0F0F0] rounded-lg p-3 transition-colors duration-200 text-[#212529] hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500"
                       role="menuitem"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Icon className="text-blue-400 text-xl" aria-hidden="true" />
+                      <Icon className="text-[#007BFF] text-xl" aria-hidden="true" />
                       <span>{label}</span>
                     </Link>
                   </li>
@@ -199,7 +213,7 @@ export default function Header() {
                   <li role="none">
                     <Link 
                       to="/admin" 
-                      className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 rounded-lg p-3 transition-colors duration-200 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex items-center gap-3 bg-[#007BFF] hover:bg-[#0056b3] rounded-lg p-3 transition-colors duration-200 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
                       role="menuitem"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -212,7 +226,7 @@ export default function Header() {
             
             <div className="mt-4 space-y-3">
               <SubmitRecipeButton 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                className="w-full bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 onClick={() => setIsMobileMenuOpen(false)}
               />
               
@@ -220,11 +234,11 @@ export default function Header() {
                 <>
                   <Link 
                     to="/profile" 
-                    className="flex items-center justify-center gap-2 w-full bg-gray-800 hover:bg-gray-700 rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex items-center justify-center gap-2 w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="View Profile"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <div className="bg-blue-600 rounded-full p-1">
+                    <div className="bg-[#007BFF] rounded-full p-1">
                       <FaUser className="text-white text-sm" aria-hidden="true" />
                     </div>
                     <span>{user.username || 'Profile'}</span>
@@ -234,7 +248,7 @@ export default function Header() {
                       handleLogout();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center justify-center gap-2 w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex items-center justify-center gap-2 w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="Log out of your account"
                   >
                     <FaSignOutAlt aria-hidden="true" />
@@ -245,11 +259,11 @@ export default function Header() {
                 <>
                   <LoginButton 
                     onClick={handleLoginClick} 
-                    className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    className="w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                   />
                   <SignUpButton 
                     onClick={handleSignUpClick} 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    className="w-full bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                   />
                 </>
               )}

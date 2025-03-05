@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUtensils, FaAppleAlt, FaCheck } from 'react-icons/fa';
@@ -53,42 +52,42 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-800 via-gray-900 to-gray-800 text-white py-16 px-4">
+    <main className="flex flex-col items-center justify-center min-h-screen bg-[#FAFAFA] text-[#212529] py-16 px-4">
       {/* Hero Section */}
       <section className="text-center max-w-4xl mx-auto mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-          <span className="text-blue-300">Power</span> Your <span className="text-blue-300">Fitness</span> Journey
+          <span className="text-[#007BFF]">Power</span> Your <span className="text-[#007BFF]">Fitness</span> Journey
         </h1>
-        <p className="text-xl text-gray-200 max-w-3xl mx-auto">
+        <p className="text-xl text-gray-700 max-w-3xl mx-auto">
           Personalized meal plans designed to help you reach your fitness goals with precision nutrition
         </p>
       </section>
 
       {/* Main Card */}
       <section className="w-full max-w-2xl mx-auto" aria-labelledby="meal-plan-heading">
-        <div className="bg-gray-900 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
           {/* Card Header */}
-          <div className="bg-gradient-to-r from-blue-700 to-blue-600 p-6 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-[#007BFF] to-[#0056b3] p-6 flex items-center justify-between">
             <h2 id="meal-plan-heading" className="text-2xl font-bold text-white flex items-center">
               <FaUtensils className="mr-3" aria-hidden="true" />
               Meal Plan Generator
             </h2>
-            <div className="bg-blue-800 text-white text-sm font-medium py-1 px-3 rounded-full">
+            <div className="bg-[#0056b3] text-white text-sm font-medium py-1 px-3 rounded-full">
               Free
             </div>
           </div>
           
           {/* Card Content */}
           <div className="p-6">
-            <p className="mb-6 text-gray-300">
+            <p className="mb-6 text-gray-700">
               Create your personalized meal plan by entering your daily calorie target and dietary preferences below.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Calorie Input */}
               <div>
-                <label htmlFor="calorie-input" className="block text-sm font-medium text-gray-200 mb-2">
-                  Daily Calorie Target <span className="text-blue-400">*</span>
+                <label htmlFor="calorie-input" className="block text-sm font-medium text-gray-700 mb-2">
+                  Daily Calorie Target <span className="text-[#007BFF]">*</span>
                 </label>
                 <div className="relative rounded-md shadow-sm">
                   <input
@@ -97,7 +96,7 @@ export default function Home() {
                     placeholder="Enter target calories (e.g., 2500)"
                     value={targetCalories}
                     onChange={(e) => setTargetCalories(e.target.value)}
-                    className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    className="w-full p-3 bg-white text-[#212529] border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition"
                     required
                     aria-required="true"
                     min="1000"
@@ -112,14 +111,14 @@ export default function Home() {
 
               {/* Dietary Preferences Dropdown */}
               <div>
-                <label htmlFor="diet-select" className="block text-sm font-medium text-gray-200 mb-2">
-                  Dietary Preference
+                <label htmlFor="diet-select" className="block text-sm font-medium text-gray-700 mb-2">
+                  Dietary Preference (Optional)
                 </label>
                 <select
                   id="diet-select"
                   value={diet}
                   onChange={(e) => setDiet(e.target.value)}
-                  className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  className="w-full p-3 bg-white text-[#212529] border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition"
                   aria-label="Select your dietary preference"
                 >
                   {dietaryOptions.map(option => (
@@ -132,8 +131,8 @@ export default function Home() {
 
               {/* Intolerances Checkboxes */}
               <div>
-                <fieldset className="border border-gray-700 rounded-lg p-4 bg-gray-800">
-                  <legend className="text-sm font-medium text-blue-400 px-2">Dietary Restrictions (Optional)</legend>
+                <fieldset className="border border-gray-300 rounded-lg p-4 bg-white">
+                  <legend className="text-sm font-medium text-[#007BFF] px-2">Dietary Restrictions (Optional)</legend>
                   
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
                     {intoleranceOptions.map((intolerance) => (
@@ -145,7 +144,7 @@ export default function Home() {
                             value={intolerance}
                             checked={intolerances.includes(intolerance)}
                             onChange={() => toggleIntolerance(intolerance)}
-                            className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-600 rounded"
+                            className="focus:ring-[#007BFF] h-4 w-4 text-[#007BFF] border-gray-300 rounded"
                             aria-labelledby={`intolerance-${intolerance}-label`}
                           />
                         </div>
@@ -153,7 +152,7 @@ export default function Home() {
                           <label 
                             id={`intolerance-${intolerance}-label`} 
                             htmlFor={`intolerance-${intolerance}`} 
-                            className="text-gray-200 capitalize cursor-pointer"
+                            className="text-gray-700 capitalize cursor-pointer"
                           >
                             {intolerance}
                           </label>
@@ -167,7 +166,7 @@ export default function Home() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium p-3 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 shadow-md"
+                className="w-full flex items-center justify-center bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium p-3 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#007BFF] focus:ring-offset-2 focus:ring-offset-white shadow-md"
                 aria-label="Generate your meal plan"
               >
                 <FaCheck className="mr-2" aria-hidden="true" />
@@ -180,7 +179,7 @@ export default function Home() {
 
       {/* Benefits Section */}
       <section className="mt-16 max-w-4xl mx-auto text-center">
-        <h2 className="text-2xl font-bold mb-8 text-blue-300">Why Choose BulkBuddy?</h2>
+        <h2 className="text-2xl font-bold mb-8 text-[#007BFF]">Why Choose BulkBuddy?</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
@@ -200,10 +199,10 @@ export default function Home() {
               icon: "🍽️"
             }
           ].map((benefit, index) => (
-            <div key={index} className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition-colors duration-300">
+            <div key={index} className="bg-white rounded-lg p-6 border border-gray-200 hover:border-[#007BFF] transition-colors duration-300">
               <div className="text-3xl mb-4">{benefit.icon}</div>
               <h3 className="text-xl font-bold mb-2">{benefit.title}</h3>
-              <p className="text-gray-300">{benefit.description}</p>
+              <p className="text-gray-700">{benefit.description}</p>
             </div>
           ))}
         </div>
