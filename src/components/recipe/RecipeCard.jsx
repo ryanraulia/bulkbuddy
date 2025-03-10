@@ -1,9 +1,11 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext'; // Correct the import path
+import { useTheme } from '../../context/ThemeContext'; // Import useTheme
 import axios from 'axios';
 
 const RecipeCard = ({ recipe, onClick, onDelete }) => {
   const { user } = useAuth();
+  const { darkMode } = useTheme(); // Get darkMode from ThemeContext
   
   const handleDelete = async (e) => {
     e.stopPropagation();
@@ -22,7 +24,7 @@ const RecipeCard = ({ recipe, onClick, onDelete }) => {
   );
 
   return (
-    <div className="relative bg-gray-800 p-4 rounded-lg shadow-lg hover:shadow-xl transition duration-300 cursor-pointer">
+    <div className={`relative p-4 rounded-lg shadow-lg hover:shadow-xl transition duration-300 cursor-pointer ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
       {showDelete && (
         <button 
           onClick={handleDelete}
@@ -44,7 +46,7 @@ const RecipeCard = ({ recipe, onClick, onDelete }) => {
       <h2 className="text-lg font-semibold mt-2 text-center text-yellow-400">
         {recipe.title}
       </h2>
-      <p className="text-sm text-gray-400 text-center mt-1">
+      <p className={`text-sm text-center mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
         Submitted by: {recipe.username}
       </p>
     </div>

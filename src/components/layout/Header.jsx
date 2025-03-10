@@ -6,12 +6,13 @@ import SignUpButton from '../buttons/SignUpButton';
 import SubmitRecipeButton from '../buttons/SubmitRecipeButton';
 import AuthModal from './AuthModal';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, toggleDarkMode } = useTheme(); // Use darkMode and toggleDarkMode from useTheme
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -69,10 +70,6 @@ export default function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
   const navItems = [
     { to: "/", icon: FaUtensils, label: "Home" },
     { to: "/calculators", icon: FaCalculator, label: "Calculators" },
@@ -120,7 +117,7 @@ export default function Header() {
                 <li key={label} role="none">
                   <Link
                     to={to}
-                    className="flex items-center gap-2 hover:bg-[#F0F0F0] rounded-lg px-3 py-2 transition-colors duration-200 text-[#212529] hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`flex items-center gap-2 hover:bg-[#F0F0F0] rounded-lg px-3 py-2 transition-colors duration-200 ${darkMode ? 'text-white' : 'text-[#212529]'} hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     role="menuitem"
                   >
                     <Icon className="text-[#007BFF] text-lg" aria-hidden="true" />
@@ -179,16 +176,16 @@ export default function Header() {
                 />
               </div>
             )}
-          </div>
 
-          {/* Dark Mode Toggle */}
-          <button 
-            onClick={toggleDarkMode} 
-            className="ml-4 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-600" />}
-          </button>
+            {/* Dark Mode Toggle */}
+            <button 
+              onClick={toggleDarkMode} 
+              className="ml-4 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-600" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation Menu */}
@@ -200,7 +197,7 @@ export default function Header() {
                   <li key={label} role="none">
                     <Link
                       to={to}
-                      className="flex items-center gap-3 hover:bg-[#F0F0F0] rounded-lg p-3 transition-colors duration-200 text-[#212529] hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`flex items-center gap-3 hover:bg-[#F0F0F0] rounded-lg p-3 transition-colors duration-200 ${darkMode ? 'text-white' : 'text-[#212529]'} hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       role="menuitem"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -221,53 +218,52 @@ export default function Header() {
                     </Link>
                   </li>
                 )}
+                <div className="mt-4 space-y-3">
+                  <SubmitRecipeButton 
+                    className="w-full bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  />
+                  
+                  {user ? (
+                    <>
+                      <Link 
+                        to="/profile" 
+                        className="flex items-center justify-center gap-2 w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-label="View Profile"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <div className="bg-[#007BFF] rounded-full p-1">
+                          <FaUser className="text-white text-sm" aria-hidden="true" />
+                        </div>
+                        <span>{user.username || 'Profile'}</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-label="Log out of your account"
+                      >
+                        <FaSignOutAlt aria-hidden="true" />
+                        <span>Logout</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <LoginButton 
+                        onClick={handleLoginClick} 
+                        className="w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      />
+                      <SignUpButton 
+                        onClick={handleSignUpClick} 
+                        className="w-full bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      />
+                    </>
+                  )}
+                </div>
               </ul>
             </nav>
-            
-            <div className="mt-4 space-y-3">
-              <SubmitRecipeButton 
-                className="w-full bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                onClick={() => setIsMobileMenuOpen(false)}
-              />
-              
-              {user ? (
-                <>
-                  <Link 
-                    to="/profile" 
-                    className="flex items-center justify-center gap-2 w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label="View Profile"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <div className="bg-[#007BFF] rounded-full p-1">
-                      <FaUser className="text-white text-sm" aria-hidden="true" />
-                    </div>
-                    <span>{user.username || 'Profile'}</span>
-                  </Link>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="flex items-center justify-center gap-2 w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label="Log out of your account"
-                  >
-                    <FaSignOutAlt aria-hidden="true" />
-                    <span>Logout</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <LoginButton 
-                    onClick={handleLoginClick} 
-                    className="w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  />
-                  <SignUpButton 
-                    onClick={handleSignUpClick} 
-                    className="w-full bg-[#007BFF] hover:bg-[#0056b3] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  />
-                </>
-              )}
-            </div>
           </div>
         )}
       </div>

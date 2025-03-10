@@ -5,7 +5,6 @@ import { FaUtensils, FaAppleAlt, FaCheck } from 'react-icons/fa';
 export default function Home() {
   const [targetCalories, setTargetCalories] = useState('');
   const [diet, setDiet] = useState('');
-  const [intolerances, setIntolerances] = useState([]);
   const navigate = useNavigate();
 
   const dietaryOptions = [
@@ -17,10 +16,6 @@ export default function Home() {
     { value: "paleo", label: "Paleo" }
   ];
 
-  const intoleranceOptions = [
-    'dairy', 'egg', 'gluten', 'peanut', 'seafood', 
-    'sesame', 'shellfish', 'soy', 'sulfite', 'tree nut'
-  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +25,6 @@ export default function Home() {
       });
       
       if (diet) queryParams.append('diet', diet);
-      if (intolerances.length > 0) queryParams.append('intolerances', intolerances.join(','));
 
       const response = await fetch(`http://localhost:5000/api/mealplan?${queryParams.toString()}`);
       if (!response.ok) {
@@ -43,13 +37,6 @@ export default function Home() {
     }
   };
 
-  const toggleIntolerance = (intolerance) => {
-    if (intolerances.includes(intolerance)) {
-      setIntolerances(intolerances.filter(i => i !== intolerance));
-    } else {
-      setIntolerances([...intolerances, intolerance]);
-    }
-  };
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-[#FAFAFA] text-[#212529] py-16 px-4">
@@ -127,40 +114,6 @@ export default function Home() {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* Intolerances Checkboxes */}
-              <div>
-                <fieldset className="border border-gray-300 rounded-lg p-4 bg-white">
-                  <legend className="text-sm font-medium text-[#007BFF] px-2">Dietary Restrictions (Optional)</legend>
-                  
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
-                    {intoleranceOptions.map((intolerance) => (
-                      <div key={intolerance} className="relative flex items-start">
-                        <div className="flex items-center h-5">
-                          <input
-                            id={`intolerance-${intolerance}`}
-                            type="checkbox"
-                            value={intolerance}
-                            checked={intolerances.includes(intolerance)}
-                            onChange={() => toggleIntolerance(intolerance)}
-                            className="focus:ring-[#007BFF] h-4 w-4 text-[#007BFF] border-gray-300 rounded"
-                            aria-labelledby={`intolerance-${intolerance}-label`}
-                          />
-                        </div>
-                        <div className="ml-2 text-sm">
-                          <label 
-                            id={`intolerance-${intolerance}-label`} 
-                            htmlFor={`intolerance-${intolerance}`} 
-                            className="text-gray-700 capitalize cursor-pointer"
-                          >
-                            {intolerance}
-                          </label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </fieldset>
               </div>
 
               {/* Submit Button */}

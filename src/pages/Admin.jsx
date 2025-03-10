@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
 const AdminPage = () => {
   const [pendingRecipes, setPendingRecipes] = useState([]);
   const { user } = useAuth();
+  const { darkMode } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -51,14 +53,14 @@ const AdminPage = () => {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white text-center">
+      <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#121212] via-[#181818] to-[#121212]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'} text-${darkMode ? '[#E0E0E0]' : '[#212529]'} text-center`}>
         <h1 className="text-2xl text-red-500">Admin access required</h1>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white">
+    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#121212] via-[#181818] to-[#121212]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'} text-${darkMode ? '[#E0E0E0]' : '[#212529]'}`}>
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-8">
           Pending Recipe Approvals
@@ -78,7 +80,7 @@ const AdminPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pendingRecipes.map((recipe) => (
-            <div key={recipe.id} className="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div key={recipe.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-6 rounded-lg shadow-lg`}>
               <h3 className="text-xl font-bold mb-3 text-yellow-400">{recipe.title}</h3>
               {recipe.image && (
                 <img

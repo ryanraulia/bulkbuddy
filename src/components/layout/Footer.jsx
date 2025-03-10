@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaTwitter, FaYoutube, FaUtensils } from 'react-icons/fa';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Footer() {
+  const { darkMode } = useTheme();
+
   const navItems = [
     { to: "/", label: "Home" },
     { to: "/calculators", label: "Calculators" },
@@ -19,7 +22,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-gray-900 border-t border-blue-500 text-white py-8 mt-auto" role="contentinfo">
+    <footer className={`${darkMode ? 'bg-[#202124] border-gray-700' : 'bg-[#FAFAFA] border-blue-500'} border-t py-8 mt-auto`} role="contentinfo">
       <div className="container mx-auto px-4">
         {/* Main footer content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
@@ -27,14 +30,16 @@ export default function Footer() {
           <div className="flex flex-col items-center md:items-start">
             <Link 
               to="/" 
-              className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2 transition-colors duration-200 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2"
+              className={`text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2 transition-colors duration-200 ${darkMode ? 'hover:text-gray-300' : 'hover:text-gray-700'} focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2`}
               aria-label="BulkBuddy Home"
             >
-              <FaUtensils className="text-blue-400" aria-hidden="true" /> 
-              <span className="text-blue-300">Bulk</span>
-              <span>Buddy</span>
+              <FaUtensils className={`${darkMode ? 'text-blue-400' : 'text-blue-600'}`} aria-hidden="true" /> 
+              <span className={`${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>Bulk</span>
+              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Buddy</span>
             </Link>
-            <p className="mt-2 text-gray-300 text-sm">Your personalized meal planning solution</p>
+            <p className={`mt-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Your personalized meal planning solution
+            </p>
             
             {/* Social links for mobile */}
             <div className="flex space-x-3 mt-4 md:hidden" role="list" aria-label="Social media links">
@@ -42,7 +47,7 @@ export default function Footer() {
                 <a
                   key={label}
                   href="#"
-                  className="bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white transition-colors duration-200 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white transition-colors duration-200 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label={`Visit our ${label} page`}
                 >
                   <Icon size={18} aria-hidden="true" />
@@ -53,14 +58,14 @@ export default function Footer() {
 
           {/* Navigation links */}
           <div className="flex flex-col items-center md:items-start">
-            <h3 className="text-lg font-semibold mb-4 text-blue-300">Quick Links</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>Quick Links</h3>
             <nav aria-label="Footer navigation">
               <ul className="space-y-2">
                 {navItems.map(({ to, label }) => (
                   <li key={label}>
                     <Link
                       to={to}
-                      className="text-gray-200 hover:text-white hover:translate-x-1 inline-flex items-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1"
+                      className={`text-gray-200 hover:text-white hover:translate-x-1 inline-flex items-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1`}
                     >
                       <span className="text-blue-400 mr-2">›</span>
                       {label}
@@ -73,7 +78,7 @@ export default function Footer() {
 
           {/* Connect section */}
           <div className="flex flex-col items-center md:items-start">
-            <h3 className="text-lg font-semibold mb-4 text-blue-300">Connect With Us</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>Connect With Us</h3>
             
             {/* Newsletter form */}
             <div className="w-full max-w-xs">
@@ -83,7 +88,7 @@ export default function Footer() {
                   id="email-subscription"
                   type="email"
                   placeholder="Your email address"
-                  className="bg-gray-800 text-white placeholder-gray-400 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`bg-gray-800 text-white placeholder-gray-400 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
                 <button 
                   type="submit" 
@@ -100,7 +105,7 @@ export default function Footer() {
                 <a
                   key={label}
                   href="#"
-                  className="bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white transition-colors duration-200 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white transition-colors duration-200 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label={`Visit our ${label} page`}
                 >
                   <Icon size={18} aria-hidden="true" />

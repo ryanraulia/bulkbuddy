@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -15,6 +16,7 @@ export default function Profile() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRecipes, setUserRecipes] = useState([]); // Add state for user recipes
   const navigate = useNavigate();
+  const { darkMode } = useTheme();
 
   useEffect(() => {
     const fetchUserAndRecipes = async () => {
@@ -98,7 +100,7 @@ export default function Profile() {
   if (!user) return <p>Loading profile...</p>;
 
   return (
-    <div className="container mx-auto px-6 py-10 max-w-4xl">
+    <div className={`container mx-auto px-6 py-10 max-w-4xl ${darkMode ? 'bg-[#202124] text-[#E0E0E0]' : 'bg-white text-[#212529]'}`}>
       <div className="bg-white rounded-lg shadow-lg p-8">
         {isEditing ? (
           <form onSubmit={handleUpdateProfile}>
@@ -131,7 +133,7 @@ export default function Profile() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full p-2 border rounded-md"
+                    className={`w-full p-2 rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                   />
                 </div>
                 <div>
@@ -139,7 +141,7 @@ export default function Profile() {
                   <textarea
                     value={formData.bio}
                     onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                    className="w-full p-2 border rounded-md h-32"
+                    className={`w-full p-2 rounded-md h-32 ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                   />
                 </div>
                 <div>
@@ -148,7 +150,7 @@ export default function Profile() {
                     type="text"
                     value={formData.location}
                     onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    className="w-full p-2 border rounded-md"
+                    className={`w-full p-2 rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                   />
                 </div>
                 <div>
@@ -157,7 +159,7 @@ export default function Profile() {
                     type="url"
                     value={formData.website}
                     onChange={(e) => setFormData({...formData, website: e.target.value})}
-                    className="w-full p-2 border rounded-md"
+                    className={`w-full p-2 rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
                   />
                 </div>
               </div>

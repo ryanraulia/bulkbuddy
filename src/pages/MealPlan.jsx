@@ -25,19 +25,7 @@ export default function MealPlan() {
         );
 
         const recipeDetails = await Promise.all(recipePromises);
-        
-        // Client-side filtering
-        const activeIntolerances = mealPlanData.filters?.intolerances || [];
-        const filteredRecipes = recipeDetails.filter(recipe => {
-          if (activeIntolerances.length === 0) return true;
-          return !activeIntolerances.some(intolerance => 
-            recipe.diets?.includes(intolerance) || 
-            recipe.intolerances?.includes(intolerance) ||
-            recipe.extendedIngredients?.some(ing => ing.name.toLowerCase().includes(intolerance))
-          );
-        });
-
-        setRecipes(filteredRecipes);
+        setRecipes(recipeDetails);
       } catch (error) {
         console.error("Error fetching recipe details:", error);
         setError("Failed to fetch recipe details. Please try again.");
@@ -68,7 +56,7 @@ export default function MealPlan() {
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-8">Your Meal Plan</h1>
         
-        {/* Add filters summary */}
+        {/* Filters summary */}
         {mealPlanData?.filters && (
           <div className="bg-gray-800 p-4 rounded-lg mb-6">
             <h2 className="text-yellow-400 text-lg font-bold mb-2">Applied Filters</h2>
@@ -77,12 +65,6 @@ export default function MealPlan() {
                 <span className="text-gray-300">Diet:</span>
                 <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
                   {mealPlanData.filters.diet || 'None'}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-300">Intolerances:</span>
-                <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
-                  {mealPlanData.filters.intolerances.join(', ') || 'None'}
                 </span>
               </div>
             </div>

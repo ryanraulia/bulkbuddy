@@ -4,6 +4,7 @@ import axios from 'axios';
 import RecipeCard from "../components/recipe/RecipeCard";
 import RecipeModal from "../components/recipe/RecipeModal";
 import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { useTheme } from '../context/ThemeContext'; // Import useTheme
 
 export default function Recipes() {
   const [randomRecipes, setRandomRecipes] = useState([]);
@@ -13,6 +14,7 @@ export default function Recipes() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth(); // Get user from AuthContext
+  const { darkMode } = useTheme(); // Get darkMode from ThemeContext
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -44,7 +46,7 @@ export default function Recipes() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white">
+    <div className={`min-h-screen py-8 ${darkMode ? 'bg-[#202124]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'} ${darkMode ? 'text-[#E0E0E0]' : 'text-[#212529]'}`}>
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-8">Recipes</h1>
 
@@ -56,7 +58,7 @@ export default function Recipes() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search recipes..."
-              className="flex-1 p-3 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className={`flex-1 p-3 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
             />
             <button
               type="submit"

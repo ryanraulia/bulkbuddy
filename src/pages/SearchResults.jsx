@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import RecipeCard from "../components/recipe/RecipeCard";
 import RecipeModal from "../components/recipe/RecipeModal";
+import { useTheme } from '../context/ThemeContext';
 
 export default function SearchResults() {
   const location = useLocation();
@@ -12,6 +13,7 @@ export default function SearchResults() {
   const [results, setResults] = useState([]);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { darkMode } = useTheme();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -29,7 +31,7 @@ export default function SearchResults() {
   }, [query]);
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white">
+    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#121212] via-[#181818] to-[#121212]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'} ${darkMode ? 'text-[#E0E0E0]' : 'text-[#212529]'}`}>
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-2xl font-bold text-yellow-400 mb-6">
           Search Results for "{query}"
