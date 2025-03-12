@@ -70,12 +70,12 @@ export default function Recipes() {
   const displayedRecipes = activeTab === 'popular' ? filteredRandomRecipes : filteredUserRecipes;
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-[#1E1E1E]' : 'bg-[#FAFAFA]'}`}>
       {/* Hero Section */}
-      <div className={`py-12 ${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-yellow-400 to-amber-500'} mb-8`}>
+      <div className={`py-12 ${darkMode ? 'bg-[#2D2D2D]' : 'bg-gradient-to-r from-[#007BFF] to-[#0056b3]'} mb-8`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
-            <h1 className={`text-5xl font-bold mb-4 ${darkMode ? 'text-yellow-400' : 'text-white'}`}>
+            <h1 className={`text-5xl font-bold mb-4 ${darkMode ? 'text-blue-400' : 'text-white'}`}>
               Discover Delicious Recipes
             </h1>
             <p className={`text-xl mb-8 ${darkMode ? 'text-gray-300' : 'text-white opacity-90'}`}>
@@ -84,7 +84,7 @@ export default function Recipes() {
             
             {/* Enhanced Search Bar */}
             <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
-              <div className="flex items-center bg-white dark:bg-gray-700 rounded-full overflow-hidden shadow-lg">
+              <div className={`flex items-center ${darkMode ? 'bg-[#1E1E1E]' : 'bg-white'} rounded-full overflow-hidden shadow-lg`}>
                 <div className="pl-4">
                   <Search className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
                 </div>
@@ -93,11 +93,11 @@ export default function Recipes() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for recipes, ingredients, or cuisines..."
-                  className={`w-full p-4 border-none focus:outline-none ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}`}
+                  className={`w-full p-4 border-none focus:outline-none ${darkMode ? 'bg-[#1E1E1E] text-white' : 'bg-white text-gray-800'}`}
                 />
                 <button
                   type="submit"
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-6 py-4 transition-colors focus:outline-none"
+                  className={`${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#007BFF] hover:bg-[#0056b3]'} text-white font-medium px-6 py-4 transition-colors focus:outline-none`}
                 >
                   Search
                 </button>
@@ -115,8 +115,8 @@ export default function Recipes() {
               onClick={() => setActiveTab('popular')}
               className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
                 activeTab === 'popular' 
-                  ? 'bg-yellow-500 text-white' 
-                  : `${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'}`
+                  ? 'bg-blue-600 text-white' 
+                  : `${darkMode ? 'bg-[#2D2D2D] text-gray-300' : 'bg-white text-gray-700'}`
               }`}
             >
               <ChefHat size={18} />
@@ -126,8 +126,8 @@ export default function Recipes() {
               onClick={() => setActiveTab('user')}
               className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
                 activeTab === 'user' 
-                  ? 'bg-yellow-500 text-white' 
-                  : `${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'}`
+                  ? 'bg-blue-600 text-white' 
+                  : `${darkMode ? 'bg-[#2D2D2D] text-gray-300' : 'bg-white text-gray-700'}`
               }`}
             >
               <Bookmark size={18} />
@@ -138,7 +138,7 @@ export default function Recipes() {
           {user && (
             <button 
               onClick={handleAddRecipe}
-              className="bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+              className={`${darkMode ? 'bg-green-600 hover:bg-green-700' : 'bg-green-500 hover:bg-green-600'} text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition-colors`}
             >
               <Plus size={18} />
               <span>Add Recipe</span>
@@ -153,8 +153,8 @@ export default function Recipes() {
               onClick={() => setFilterCategory('all')}
               className={`px-4 py-2 rounded-full text-sm ${
                 filterCategory === 'all'
-                  ? 'bg-yellow-500 text-white' 
-                  : `${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'}`
+                  ? 'bg-blue-600 text-white' 
+                  : `${darkMode ? 'bg-[#2D2D2D] text-gray-300' : 'bg-white text-gray-700'}`
               }`}
             >
               All Categories
@@ -165,8 +165,8 @@ export default function Recipes() {
                 onClick={() => setFilterCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm ${
                   filterCategory === category
-                    ? 'bg-yellow-500 text-white' 
-                    : `${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-white text-gray-700'}`
+                    ? 'bg-blue-600 text-white' 
+                    : `${darkMode ? 'bg-[#2D2D2D] text-gray-300' : 'bg-white text-gray-700'}`
                 }`}
               >
                 {category}
@@ -179,17 +179,17 @@ export default function Recipes() {
         {loading && (
           <div className="flex justify-center items-center py-20">
             <div className="relative">
-              <div className="w-16 h-16 border-t-4 border-yellow-500 border-solid rounded-full animate-spin"></div>
-              <ChefHat className="w-8 h-8 text-yellow-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+              <div className={`w-16 h-16 border-t-4 ${darkMode ? 'border-blue-400' : 'border-[#007BFF]'} border-solid rounded-full animate-spin`}></div>
+              <ChefHat className={`w-8 h-8 ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2`} />
             </div>
-            <p className="ml-4 text-lg">Preparing recipes...</p>
+            <p className={`ml-4 text-lg ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Preparing recipes...</p>
           </div>
         )}
 
         {/* Recipe Section */}
         {!loading && (
           <>
-            <h2 className="text-3xl font-bold mb-6">
+            <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>
               {activeTab === 'popular' ? 'Popular Recipes' : 'User Submitted Recipes'}
               {filterCategory !== 'all' && ` • ${filterCategory}`}
             </h2>
@@ -207,10 +207,10 @@ export default function Recipes() {
                 ))}
               </div>
             ) : (
-              <div className={`text-center py-16 ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm`}>
-                <ChefHat className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <h3 className="text-xl font-medium mb-2">No recipes found</h3>
-                <p className="text-gray-500 mb-6">
+              <div className={`text-center py-16 ${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} rounded-lg shadow-sm`}>
+                <ChefHat className={`w-16 h-16 mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                <h3 className={`text-xl font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>No recipes found</h3>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-6`}>
                   {filterCategory !== 'all' 
                     ? `No ${filterCategory} recipes found in the ${activeTab === 'popular' ? 'popular' : 'user'} section.`
                     : `No recipes found in the ${activeTab === 'popular' ? 'popular' : 'user'} section.`}
@@ -218,7 +218,7 @@ export default function Recipes() {
                 {user && (
                   <button 
                     onClick={handleAddRecipe}
-                    className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+                    className={`inline-flex items-center gap-2 ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#007BFF] hover:bg-[#0056b3]'} text-white font-medium px-6 py-3 rounded-lg transition-colors`}
                   >
                     <Plus size={18} />
                     <span>Add a Recipe</span>

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useAuth } from '../../context/AuthContext'; // Correct the import path
-import { useTheme } from '../../context/ThemeContext'; // Import useTheme
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import axios from 'axios';
 
 const RecipeCard = ({ recipe, onClick, onDelete }) => {
@@ -24,7 +24,10 @@ const RecipeCard = ({ recipe, onClick, onDelete }) => {
   );
 
   return (
-    <div className={`relative p-4 rounded-lg shadow-lg hover:shadow-xl transition duration-300 cursor-pointer ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+    <div 
+      className={`relative p-4 rounded-lg shadow-lg hover:shadow-xl transition duration-300 cursor-pointer ${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'}`}
+      onClick={() => onClick(recipe.id)}
+    >
       {showDelete && (
         <button 
           onClick={handleDelete}
@@ -41,9 +44,8 @@ const RecipeCard = ({ recipe, onClick, onDelete }) => {
         src={recipe.image} 
         alt={recipe.title} 
         className="w-full h-40 object-cover rounded-md"
-        onClick={() => onClick(recipe.id)}
       />
-      <h2 className="text-lg font-semibold mt-2 text-center text-yellow-400">
+      <h2 className={`text-lg font-semibold mt-2 text-center ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>
         {recipe.title}
       </h2>
       <p className={`text-sm text-center mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>

@@ -40,8 +40,8 @@ const FoodCalorieCalculator = () => {
   };
 
   return (
-    <div className={`max-w-4xl mx-auto p-6 rounded-lg shadow-lg mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-      <h2 className="text-2xl font-bold text-yellow-400 mb-2">Food Nutrition Calculator</h2>
+    <div className={`max-w-4xl mx-auto p-6 rounded-lg shadow-lg mb-8 ${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'}`}>
+      <h2 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-2`}>Food Nutrition Calculator</h2>
       <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>Please enter food and be specific (e.g., Chicken Breast)</p>
       
       <form onSubmit={handleSubmit} className="mb-4">
@@ -51,13 +51,13 @@ const FoodCalorieCalculator = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for food (e.g. Banana)"
-            className={`flex-1 p-2 border rounded ${darkMode ? 'border-gray-700 text-white bg-gray-900' : 'border-gray-300'}`}
+            className={`flex-1 p-2 border rounded ${darkMode ? 'border-gray-700 text-[#E0E0E0] bg-[#1E1E1E]' : 'border-gray-300 text-[#212529] bg-white'}`}
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !query.trim()}
-            className="bg-yellow-500 text-gray-900 px-4 py-2 rounded hover:bg-yellow-400 disabled:bg-gray-400"
+            className={`${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#007BFF] hover:bg-[#0056b3]'} text-white px-4 py-2 rounded transition-colors duration-200 disabled:bg-gray-400`}
           >
             {loading ? 'Searching...' : 'Search'}
           </button>
@@ -73,13 +73,13 @@ const FoodCalorieCalculator = () => {
       {results.length > 0 ? (
         <div className="space-y-4">
           {results.map((food) => (
-            <div key={food.fdcId} className={`p-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-              <h3 className="font-semibold text-yellow-400 mb-2">{food.description}</h3>
+            <div key={food.fdcId} className={`p-4 rounded ${darkMode ? 'bg-[#1E1E1E]' : 'bg-gray-100'}`}>
+              <h3 className={`font-semibold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-2`}>{food.description}</h3>
               <div className="grid grid-cols-2 gap-2">
-                <div>Calories: {food.calories?.toFixed(1) || 'N/A'}</div>
-                <div>Protein: {food.protein?.toFixed(1) || 'N/A'}g</div>
-                <div>Carbs: {food.carbs?.toFixed(1) || 'N/A'}g</div>
-                <div>Fat: {food.fat?.toFixed(1) || 'N/A'}g</div>
+                <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Calories: {food.calories?.toFixed(1) || 'N/A'}</div>
+                <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Protein: {food.protein?.toFixed(1) || 'N/A'}g</div>
+                <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Carbs: {food.carbs?.toFixed(1) || 'N/A'}g</div>
+                <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Fat: {food.fat?.toFixed(1) || 'N/A'}g</div>
               </div>
             </div>
           ))}

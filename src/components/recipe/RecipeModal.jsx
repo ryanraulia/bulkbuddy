@@ -56,28 +56,28 @@ const RecipeModal = ({ recipeId, onClose }) => {
     if (!recipe) return null;
     
     return (
-      <div className="flex flex-wrap gap-4 mb-4 text-sm text-gray-400">
+      <div className="flex flex-wrap gap-4 mb-4 text-sm text-gray-200">
         {recipe.readyInMinutes && (
-          <div className="flex items-center">
-            <Clock size={16} className="mr-1 text-yellow-500" />
+          <div className="flex items-center bg-emerald-900 bg-opacity-70 px-3 py-1 rounded-full">
+            <Clock size={16} className="mr-1 text-emerald-300" />
             <span>{recipe.readyInMinutes} mins</span>
           </div>
         )}
         {recipe.servings && (
-          <div className="flex items-center">
-            <User size={16} className="mr-1 text-yellow-500" />
+          <div className="flex items-center bg-indigo-900 bg-opacity-70 px-3 py-1 rounded-full">
+            <User size={16} className="mr-1 text-indigo-300" />
             <span>{recipe.servings} servings</span>
           </div>
         )}
         {recipe.createdAt && (
-          <div className="flex items-center">
-            <Calendar size={16} className="mr-1 text-yellow-500" />
+          <div className="flex items-center bg-purple-900 bg-opacity-70 px-3 py-1 rounded-full">
+            <Calendar size={16} className="mr-1 text-purple-300" />
             <span>{new Date(recipe.createdAt).toLocaleDateString()}</span>
           </div>
         )}
         {recipe.healthScore && (
-          <div className="flex items-center">
-            <Star size={16} className="mr-1 text-yellow-500" />
+          <div className="flex items-center bg-amber-900 bg-opacity-70 px-3 py-1 rounded-full">
+            <Star size={16} className="mr-1 text-amber-300" />
             <span>Health score: {recipe.healthScore}</span>
           </div>
         )}
@@ -86,51 +86,53 @@ const RecipeModal = ({ recipeId, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    // Outer overlay with transparent background and blur
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      {/* Modal content container with semi-transparent background */}
+      <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-xl shadow-2xl border border-gray-700 max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {loading ? (
           <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
-            <p className="mt-4 text-gray-400">Loading recipe details...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
+            <p className="mt-4 text-gray-300">Loading recipe details...</p>
           </div>
         ) : (
           <>
             {/* Header with image as background */}
             <div 
-              className="relative h-56 bg-cover bg-center" 
+              className="relative h-64 bg-cover bg-center" 
               style={{ 
                 backgroundImage: recipe.image ? `url(${imageUrl})` : 'none',
-                backgroundColor: !recipe.image ? '#374151' : undefined
+                backgroundColor: !recipe.image ? '#1e293b' : undefined
               }}
             >
               {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent"></div>
               
               {/* Close button */}
               <button 
                 onClick={onClose}
-                className="absolute top-4 right-4 bg-gray-900 bg-opacity-50 rounded-full p-1 text-white hover:bg-opacity-75 transition-all z-10"
+                className="absolute top-4 right-4 bg-gray-800 bg-opacity-60 rounded-full p-2 text-white hover:bg-opacity-90 hover:bg-red-800 transition-all z-10 shadow-lg"
                 aria-label="Close modal"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
               
               {/* Recipe title and status */}
               <div className="absolute bottom-0 left-0 p-6 w-full">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="text-3xl font-bold text-white">{recipe.title}</h2>
+                    <h2 className="text-3xl font-bold text-white text-shadow">{recipe.title}</h2>
                     {recipe.source === 'user' && (
                       <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
-                        recipe.status === 'approved' ? 'bg-green-500 text-green-100' : 
-                        recipe.status === 'rejected' ? 'bg-red-500 text-red-100' : 
-                        'bg-yellow-500 text-yellow-100'
+                        recipe.status === 'approved' ? 'bg-emerald-600 text-emerald-100' : 
+                        recipe.status === 'rejected' ? 'bg-rose-600 text-rose-100' : 
+                        'bg-amber-600 text-amber-100'
                       }`}>
                         {recipe.status || 'pending'}
                       </span>
                     )}
                     {recipe.source === 'spoonacular' && (
-                      <span className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-500 text-blue-100">
+                      <span className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium bg-sky-600 text-sky-100">
                         Spoonacular
                       </span>
                     )}
@@ -142,15 +144,15 @@ const RecipeModal = ({ recipeId, onClose }) => {
             </div>
 
             {/* Tab navigation */}
-            <div className="flex border-b border-gray-700">
+            <div className="flex border-b border-gray-700 bg-gray-800/90">
               <button 
-                className={`px-6 py-3 font-medium text-sm ${activeTab === 'ingredients' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-gray-400 hover:text-gray-300'}`}
+                className={`px-6 py-4 font-medium text-sm transition-all ${activeTab === 'ingredients' ? 'text-teal-400 border-b-2 border-teal-400 bg-gray-800/50' : 'text-gray-300 hover:text-white hover:bg-gray-700/30'}`}
                 onClick={() => setActiveTab('ingredients')}
               >
                 Ingredients
               </button>
               <button 
-                className={`px-6 py-3 font-medium text-sm ${activeTab === 'instructions' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-gray-400 hover:text-gray-300'}`}
+                className={`px-6 py-4 font-medium text-sm transition-all ${activeTab === 'instructions' ? 'text-teal-400 border-b-2 border-teal-400 bg-gray-800/50' : 'text-gray-300 hover:text-white hover:bg-gray-700/30'}`}
                 onClick={() => setActiveTab('instructions')}
               >
                 Instructions
@@ -161,14 +163,14 @@ const RecipeModal = ({ recipeId, onClose }) => {
             <div className="p-6 overflow-y-auto">
               {activeTab === 'ingredients' && (
                 <div>
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {recipe.extendedIngredients.map((ingredient, i) => (
                       <li 
                         key={ingredient.id || `${i}-${ingredient.name}`}
-                        className="flex items-start"
+                        className="flex items-start p-2 rounded-lg hover:bg-gray-800/50 transition-colors"
                       >
-                        <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 mt-2 mr-3"></span>
-                        <span className="text-gray-300">{ingredient.original}</span>
+                        <span className="inline-block w-3 h-3 rounded-full bg-teal-500 mt-2 mr-3 shadow-sm shadow-teal-400/30"></span>
+                        <span className="text-gray-200">{ingredient.original}</span>
                       </li>
                     ))}
                   </ul>
@@ -176,17 +178,17 @@ const RecipeModal = ({ recipeId, onClose }) => {
               )}
 
               {activeTab === 'instructions' && (
-                <div className="prose prose-invert max-w-none prose-yellow prose-lg">
+                <div className="prose prose-invert max-w-none prose-teal prose-lg">
                   <div dangerouslySetInnerHTML={{ __html: recipe.instructions }} />
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-700 mt-auto">
+            <div className="p-4 border-t border-gray-700 mt-auto bg-gray-800/50">
               <button
                 onClick={handleOpenNutritionModal}
-                className="w-full bg-yellow-500 text-gray-900 py-3 rounded-lg hover:bg-yellow-400 transition-colors font-medium flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3 rounded-lg hover:from-teal-400 hover:to-emerald-400 transition-all font-medium flex items-center justify-center shadow-lg"
               >
                 <Info size={18} className="mr-2" />
                 Nutrition Details

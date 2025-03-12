@@ -1,7 +1,7 @@
-// src/pages/MealPlan.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import NutritionModal from '../components/recipe/NutritionModal';
+import { useTheme } from '../context/ThemeContext';
 
 export default function MealPlan() {
   const location = useLocation();
@@ -10,6 +10,7 @@ export default function MealPlan() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const { darkMode } = useTheme();
 
   const getTotalNutrients = () => {
     if (!mealPlanData) return { calories: 0 };
@@ -89,19 +90,19 @@ export default function MealPlan() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 min-h-screen py-8 text-white">
+    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#121212] via-[#181818] to-[#121212]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'}`}>
       <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-8">Your Meal Plan</h1>
+        <h1 className={`text-4xl font-extrabold text-center ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-8`}>Your Meal Plan</h1>
         
         {/* Filters summary */}
         {mealPlanData?.filters && (
-          <div className="bg-gray-800 p-4 rounded-lg mb-6">
-            <h2 className="text-yellow-400 text-lg font-bold mb-2">Applied Filters</h2>
+          <div className={`${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} p-4 rounded-lg mb-6`}>
+            <h2 className={`${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} text-lg font-bold mb-2`}>Applied Filters</h2>
             <div className="flex flex-wrap gap-4">
               {/* Diet filter */}
               <div className="flex items-center space-x-2">
-                <span className="text-gray-300">Diet:</span>
-                <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
+                <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Diet:</span>
+                <span className={`${darkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-[#007BFF]/20 text-[#007BFF]'} px-3 py-1 rounded-full text-sm`}>
                   {mealPlanData.filters.diet || 'None'}
                 </span>
               </div>
@@ -109,8 +110,8 @@ export default function MealPlan() {
               {/* Exclusions filter */}
               {mealPlanData.filters.exclude && mealPlanData.filters.exclude !== 'none' && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-300">Excluding:</span>
-                  <span className="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-sm">
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Excluding:</span>
+                  <span className={`${darkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-500/20 text-red-500'} px-3 py-1 rounded-full text-sm`}>
                     {mealPlanData.filters.exclude}
                   </span>
                 </div>
@@ -121,44 +122,44 @@ export default function MealPlan() {
 
         {loading && (
           <div className="flex items-center justify-center p-4">
-            <p className="text-lg animate-pulse text-yellow-400">Loading your meal plan...</p>
+            <p className={`text-lg animate-pulse ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>Loading your meal plan...</p>
           </div>
         )}
 
         {error && (
-          <div className="text-red-500 p-4 mb-4 bg-red-100 rounded">
+          <div className={`${darkMode ? 'bg-red-800 text-red-200' : 'bg-red-50 text-red-500'} p-4 mb-4 rounded`}>
             Error: {error}
           </div>
         )}
 
         {recipes.length > 0 && (
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
-            <h2 className="text-2xl font-bold text-yellow-400 mb-4">Calorie Breakdown</h2>
+          <div className={`${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} p-6 rounded-lg shadow-lg mb-8`}>
+            <h2 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-4`}>Calorie Breakdown</h2>
             <div className="space-y-4">
               {recipes.map((recipe, index) => (
                 <div key={`calorie-${index}`} className="relative">
                   <div className="flex justify-between mb-1">
-                    <span className="text-gray-300">{getMealType(recipe, index)}</span>
-                    <span className="text-yellow-400">{Math.round(recipe.calories)} cal</span>
+                    <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{getMealType(recipe, index)}</span>
+                    <span className={`${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>{Math.round(recipe.calories)} cal</span>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div className={`w-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-2`}>
                     <div 
-                      className="bg-yellow-400 h-2 rounded-full transition-all duration-500" 
+                      className={`${darkMode ? 'bg-blue-400' : 'bg-[#007BFF]'} h-2 rounded-full transition-all duration-500`} 
                       style={{ width: `${calculateProgress(recipe.calories)}%` }}
                     ></div>
                   </div>
                 </div>
               ))}
-              <div className="border-t border-gray-700 pt-4 mt-4">
+              <div className={`border-t ${darkMode ? 'border-gray-700' : 'border-gray-300'} pt-4 mt-4`}>
                 <div className="flex justify-between">
                   <span className="font-bold">Total Calories</span>
-                  <span className="font-bold text-yellow-400">
+                  <span className={`font-bold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>
                     {Math.round(getTotalCalories())} / {Math.round(totalNutrients.calories)} cal
                   </span>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+                <div className={`w-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-2 mt-2`}>
                   <div 
-                    className="bg-green-400 h-2 rounded-full transition-all duration-500" 
+                    className={`${darkMode ? 'bg-green-400' : 'bg-green-500'} h-2 rounded-full transition-all duration-500`} 
                     style={{ width: `${(getTotalCalories() / totalNutrients.calories) * 100}%` }}
                   ></div>
                 </div>
@@ -169,8 +170,8 @@ export default function MealPlan() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recipes.map((recipe, index) => (
-            <div key={recipe.id} className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-2xl transition">
-              <h3 className="text-xl font-bold mb-3 text-yellow-400">{getMealType(recipe, index)}</h3>
+            <div key={recipe.id} className={`${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} p-6 rounded-lg shadow-lg hover:shadow-2xl transition`}>
+              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>{getMealType(recipe, index)}</h3>
               <div className="space-y-3">
                 {recipe.image && (
                   <img
@@ -179,7 +180,7 @@ export default function MealPlan() {
                     className="w-full h-48 object-cover rounded-lg"
                   />
                 )}
-                <h4 className="text-lg font-semibold text-yellow-400">{recipe.title}</h4>
+                <h4 className={`text-lg font-semibold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>{recipe.title}</h4>
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">Calories:</span>
                   <span>{Math.round(recipe.calories)} cal</span>
@@ -189,14 +190,14 @@ export default function MealPlan() {
                     <h5 className="font-medium mb-2">Ingredients:</h5>
                     <ul className="list-disc ml-5 space-y-1">
                       {recipe.extendedIngredients.map((ingredient, i) => (
-                        <li key={i} className="text-gray-300">{ingredient.original}</li>
+                        <li key={i} className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{ingredient.original}</li>
                       ))}
                     </ul>
                   </div>
                 )}
                 <button
                   onClick={() => setSelectedRecipe(recipe)}
-                  className="mt-2 w-full bg-yellow-500 text-gray-900 py-2 rounded-lg hover:bg-yellow-400 transition-colors font-medium"
+                  className={`mt-2 w-full ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#007BFF] hover:bg-[#0056b3]'} text-white py-2 rounded-lg transition-colors font-medium`}
                 >
                   Show Nutrition Details
                 </button>

@@ -47,7 +47,7 @@ export default function Footer() {
                 <a
                   key={label}
                   href="#"
-                  className={`bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white transition-colors duration-200 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} text-gray-200 hover:text-white transition-colors duration-200 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label={`Visit our ${label} page`}
                 >
                   <Icon size={18} aria-hidden="true" />
@@ -65,9 +65,9 @@ export default function Footer() {
                   <li key={label}>
                     <Link
                       to={to}
-                      className={`text-gray-200 hover:text-white hover:translate-x-1 inline-flex items-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1`}
+                      className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-blue-600'} hover:translate-x-1 inline-flex items-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1`}
                     >
-                      <span className="text-blue-400 mr-2">›</span>
+                      <span className={`${darkMode ? 'text-blue-400' : 'text-blue-600'} mr-2`}>›</span>
                       {label}
                     </Link>
                   </li>
@@ -88,7 +88,7 @@ export default function Footer() {
                   id="email-subscription"
                   type="email"
                   placeholder="Your email address"
-                  className={`bg-gray-800 text-white placeholder-gray-400 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'} text-gray-900 placeholder-gray-400 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
                 <button 
                   type="submit" 
@@ -105,7 +105,7 @@ export default function Footer() {
                 <a
                   key={label}
                   href="#"
-                  className={`bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white transition-colors duration-200 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} text-gray-200 hover:text-white transition-colors duration-200 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label={`Visit our ${label} page`}
                 >
                   <Icon size={18} aria-hidden="true" />
@@ -116,20 +116,20 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-gray-800 my-4"></div>
+        <div className={`border-t ${darkMode ? 'border-gray-700' : 'border-gray-300'} my-4`}></div>
 
         {/* Copyright and legal links */}
         <div className="flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
           <p>&copy; {new Date().getFullYear()} BulkBuddy. All rights reserved.</p>
           
           <div className="mt-4 md:mt-0 flex flex-wrap justify-center gap-x-6 gap-y-2">
-            <Link to="/privacy" className="hover:text-blue-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1">
+            <Link to="/privacy" className={`${darkMode ? 'hover:text-blue-300' : 'hover:text-blue-600'} transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1`}>
               Privacy Policy
             </Link>
-            <Link to="/terms" className="hover:text-blue-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1">
+            <Link to="/terms" className={`${darkMode ? 'hover:text-blue-300' : 'hover:text-blue-600'} transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1`}>
               Terms of Service
             </Link>
-            <Link to="/cookies" className="hover:text-blue-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1">
+            <Link to="/cookies" className={`${darkMode ? 'hover:text-blue-300' : 'hover:text-blue-600'} transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1`}>
               Cookie Policy
             </Link>
           </div>

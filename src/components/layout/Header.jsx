@@ -12,7 +12,7 @@ export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { darkMode, toggleDarkMode } = useTheme(); // Use darkMode and toggleDarkMode from useTheme
+  const { darkMode, toggleDarkMode } = useTheme();
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -95,7 +95,7 @@ export default function Header() {
 
           {/* Mobile menu button */}
           <button 
-            className="md:hidden bg-[#FAFAFA] hover:bg-[#F0F0F0] focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2 transition-colors"
+            className={`md:hidden ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#FAFAFA] hover:bg-[#F0F0F0]'} focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-2 transition-colors`}
             onClick={toggleMobileMenu}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
@@ -117,7 +117,7 @@ export default function Header() {
                 <li key={label} role="none">
                   <Link
                     to={to}
-                    className={`flex items-center gap-2 hover:bg-[#F0F0F0] rounded-lg px-3 py-2 transition-colors duration-200 ${darkMode ? 'text-white' : 'text-[#212529]'} hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className={`flex items-center gap-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-[#F0F0F0]'} rounded-lg px-3 py-2 transition-colors duration-200 ${darkMode ? 'text-white' : 'text-[#212529]'} hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     role="menuitem"
                   >
                     <Icon className="text-[#007BFF] text-lg" aria-hidden="true" />
@@ -147,7 +147,7 @@ export default function Header() {
               <div className="flex items-center gap-3">
                 <Link 
                   to="/profile" 
-                  className="flex items-center gap-2 bg-[#FAFAFA] hover:bg-[#F0F0F0] rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#FAFAFA] hover:bg-[#F0F0F0]'} rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label="View Profile"
                 >
                   <div className="bg-[#007BFF] rounded-full p-1">
@@ -157,7 +157,7 @@ export default function Header() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#FAFAFA] hover:bg-[#F0F0F0]'} text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label="Log out of your account"
                 >
                   <FaSignOutAlt aria-hidden="true" />
@@ -168,7 +168,7 @@ export default function Header() {
               <div className="flex items-center gap-3">
                 <LoginButton 
                   onClick={handleLoginClick} 
-                  className="bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                  className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#FAFAFA] hover:bg-[#F0F0F0]'} text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`} 
                 />
                 <SignUpButton 
                   onClick={handleSignUpClick} 
@@ -190,14 +190,14 @@ export default function Header() {
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div id="mobile-menu" className="md:hidden mt-4 pb-2">
+          <div id="mobile-menu" className={`md:hidden mt-4 pb-2 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
             <nav aria-label="Mobile navigation">
               <ul className="flex flex-col space-y-2" role="menu">
                 {navItems.map(({ to, icon: Icon, label }) => (
                   <li key={label} role="none">
                     <Link
                       to={to}
-                      className={`flex items-center gap-3 hover:bg-[#F0F0F0] rounded-lg p-3 transition-colors duration-200 ${darkMode ? 'text-white' : 'text-[#212529]'} hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className={`flex items-center gap-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-[#F0F0F0]'} rounded-lg p-3 transition-colors duration-200 ${darkMode ? 'text-white' : 'text-[#212529]'} hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500`}
                       role="menuitem"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -228,7 +228,7 @@ export default function Header() {
                     <>
                       <Link 
                         to="/profile" 
-                        className="flex items-center justify-center gap-2 w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`flex items-center justify-center gap-2 w-full ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#FAFAFA] hover:bg-[#F0F0F0]'} rounded-lg py-2 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                         aria-label="View Profile"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
@@ -242,7 +242,7 @@ export default function Header() {
                           handleLogout();
                           setIsMobileMenuOpen(false);
                         }}
-                        className="w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#FAFAFA] hover:bg-[#F0F0F0]'} text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                         aria-label="Log out of your account"
                       >
                         <FaSignOutAlt aria-hidden="true" />
@@ -253,7 +253,7 @@ export default function Header() {
                     <>
                       <LoginButton 
                         onClick={handleLoginClick} 
-                        className="w-full bg-[#FAFAFA] hover:bg-[#F0F0F0] text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        className={`w-full ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#FAFAFA] hover:bg-[#F0F0F0]'} text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`} 
                       />
                       <SignUpButton 
                         onClick={handleSignUpClick} 

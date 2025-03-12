@@ -31,21 +31,31 @@ export default function SearchResults() {
   }, [query]);
 
   return (
-    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#121212] via-[#181818] to-[#121212]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'} ${darkMode ? 'text-[#E0E0E0]' : 'text-[#212529]'}`}>
+    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#121212] via-[#181818] to-[#121212]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'}`}>
       <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-2xl font-bold text-yellow-400 mb-6">
+        <h1 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-6`}>
           Search Results for "{query}"
         </h1>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {results.map((recipe) => (
-            <RecipeCard
-              key={recipe.id}
-              recipe={recipe}
-              onClick={setSelectedRecipe}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center p-4">
+            <p className={`text-lg animate-pulse ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>Loading results...</p>
+          </div>
+        ) : results.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {results.map((recipe) => (
+              <RecipeCard
+                key={recipe.id}
+                recipe={recipe}
+                onClick={setSelectedRecipe}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+            No results found for "{query}". Try a different search term.
+          </div>
+        )}
 
         {selectedRecipe && (
           <RecipeModal
