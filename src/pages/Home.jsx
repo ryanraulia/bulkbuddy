@@ -6,6 +6,7 @@ export default function Home() {
   const [targetCalories, setTargetCalories] = useState('');
   const [diet, setDiet] = useState('');
   const [exclude, setExclude] = useState(''); // Add state for exclusions
+  const [timeFrame, setTimeFrame] = useState('day'); // Add state for time frame
   const navigate = useNavigate();
 
   const dietaryOptions = [
@@ -28,12 +29,22 @@ export default function Home() {
 
       const queryParams = new URLSearchParams({
         targetCalories: targetCalories,
+        timeFrame: timeFrame,  // Add timeFrame to params
       });
       
       if (diet) queryParams.append('diet', diet);
       if (excludeIngredients) queryParams.append('exclude', excludeIngredients);
 
-      const response = await fetch(`http://localhost:5000/api/mealplan?${queryParams.toString()}`);
+      // Modify your fetch call to include credentials and headers
+      const response = await fetch(`http://localhost:5000/api/mealplan?${queryParams.toString()}`, {
+        method: 'GET',
+        credentials: 'include', // Important for cookies/auth
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate meal plan');
@@ -102,6 +113,23 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-gray-400">Recommended for bulking: current maintenance + 300-500 calories</p>
+              </div>
+
+              {/* Plan Duration Dropdown */}
+              <div>
+                <label htmlFor="time-frame" className="block text-sm font-medium text-gray-700 mb-2">
+                  Plan Duration <span className="text-[#007BFF]">*</span>
+                </label>
+                <select
+                  id="time-frame"
+                  value={timeFrame}
+                  onChange={(e) => setTimeFrame(e.target.value)}
+                  className="w-full p-3 bg-white text-[#212529] border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition"
+                  required
+                >
+                  <option value="day">Single Day</option>
+                  <option value="week">Full Week</option>
+                </select>
               </div>
 
               {/* Dietary Preferences Dropdown */}

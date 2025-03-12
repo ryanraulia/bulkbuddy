@@ -11,17 +11,58 @@ export default function MealPlan() {
   const [error, setError] = useState(null);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
 
+  const getTotalNutrients = () => {
+    if (!mealPlanData) return { calories: 0 };
+
+    // Handle weekly plan structure
+    if (mealPlanData.week) {
+      return Object.values(mealPlanData.week).reduce((total, day) => ({
+        calories: total.calories + (day.nutrients?.calories || 0),
+        protein: total.protein + (day.nutrients?.protein || 0),
+        fat: total.fat + (day.nutrients?.fat || 0),
+        carbs: total.carbs + (day.nutrients?.carbs || 0)
+      }), { calories: 0, protein: 0, fat: 0, carbs: 0 });
+    }
+
+    // Handle daily plan structure
+    return mealPlanData.nutrients || { calories: 0 };
+  };
+
+  const calculateProgress = (calories) => {
+    const targetCalories = getTotalNutrients().calories;
+    return targetCalories > 0 ? Math.min((calories / targetCalories) * 100, 100) : 0;
+  };
+
+  const getTotalCalories = () => {
+    return recipes.reduce((total, recipe) => total + (recipe.calories || 0), 0);
+  };
+
+  const totalNutrients = getTotalNutrients();
+
   useEffect(() => {
     async function fetchRecipeDetails() {
-      if (!mealPlanData?.meals) {
+      if (!mealPlanData) {
         setLoading(false);
         setError("No meal plan data available");
         return;
       }
 
       try {
-        const recipePromises = mealPlanData.meals.map(meal =>
-          fetch(`http://localhost:5000/api/recipe/${meal.id}`).then(res => res.json())
+        let mealIds = [];
+        
+        // Handle weekly structure
+        if (mealPlanData.week) {
+          mealIds = Object.values(mealPlanData.week)
+            .flatMap(day => day.meals)
+            .map(meal => meal.id);
+        } 
+        // Handle daily structure
+        else if (mealPlanData.meals) {
+          mealIds = mealPlanData.meals.map(meal => meal.id);
+        }
+
+        const recipePromises = mealIds.map(id =>
+          fetch(`http://localhost:5000/api/recipe/${id}`).then(res => res.json())
         );
 
         const recipeDetails = await Promise.all(recipePromises);
@@ -37,18 +78,14 @@ export default function MealPlan() {
     fetchRecipeDetails();
   }, [mealPlanData]);
 
-  const getMealType = (index) => {
+  const getMealType = (meal, index) => {
+    if (mealPlanData?.week) {
+      const days = Object.keys(mealPlanData.week);
+      const dayIndex = Math.floor(index / 3); // 3 meals per day
+      return `${days[dayIndex]} - ${meal.title}`;
+    }
     const types = ["Breakfast", "Lunch", "Dinner"];
-    return types[index] || "Meal";
-  };
-
-  const calculateProgress = (calories) => {
-    const targetCalories = mealPlanData?.nutrients?.calories || 0;
-    return Math.min((calories / targetCalories) * 100, 100);
-  };
-
-  const getTotalCalories = () => {
-    return recipes.reduce((total, recipe) => total + (recipe.calories || 0), 0);
+    return types[index] || meal.title;
   };
 
   return (
@@ -101,7 +138,7 @@ export default function MealPlan() {
               {recipes.map((recipe, index) => (
                 <div key={`calorie-${index}`} className="relative">
                   <div className="flex justify-between mb-1">
-                    <span className="text-gray-300">{getMealType(index)}</span>
+                    <span className="text-gray-300">{getMealType(recipe, index)}</span>
                     <span className="text-yellow-400">{Math.round(recipe.calories)} cal</span>
                   </div>
                   <div className="w-full bg-gray-700 rounded-full h-2">
@@ -116,13 +153,13 @@ export default function MealPlan() {
                 <div className="flex justify-between">
                   <span className="font-bold">Total Calories</span>
                   <span className="font-bold text-yellow-400">
-                    {Math.round(getTotalCalories())} / {Math.round(mealPlanData.nutrients.calories)} cal
+                    {Math.round(getTotalCalories())} / {Math.round(totalNutrients.calories)} cal
                   </span>
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
                   <div 
                     className="bg-green-400 h-2 rounded-full transition-all duration-500" 
-                    style={{ width: `${(getTotalCalories() / mealPlanData.nutrients.calories) * 100}%` }}
+                    style={{ width: `${(getTotalCalories() / totalNutrients.calories) * 100}%` }}
                   ></div>
                 </div>
               </div>
@@ -133,7 +170,7 @@ export default function MealPlan() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recipes.map((recipe, index) => (
             <div key={recipe.id} className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-2xl transition">
-              <h3 className="text-xl font-bold mb-3 text-yellow-400">{getMealType(index)}</h3>
+              <h3 className="text-xl font-bold mb-3 text-yellow-400">{getMealType(recipe, index)}</h3>
               <div className="space-y-3">
                 {recipe.image && (
                   <img

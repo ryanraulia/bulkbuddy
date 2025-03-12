@@ -19,12 +19,17 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 
-// Configure CORS properly
+// Replace the existing CORS config with this:
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true,
-  exposedHeaders: ['Content-Disposition']  // Add this line
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Disposition']
 }));
+
+// Add OPTIONS handler before other routes
+app.options('*', cors());
 
 const SPOONACULAR_API_KEY = process.env.SPOONACULAR_API_KEY;
 
@@ -313,17 +318,23 @@ app.get('/api/food', async (req, res) => {
 
 
 
-// server/index.js - Update /api/mealplan endpoint
+// Modify the /api/mealplan endpoint
 app.get('/api/mealplan', async (req, res) => {
   try {
-    const { targetCalories, diet, exclude } = req.query;
+    const { targetCalories, diet, exclude, timeFrame = 'day' } = req.query;
     
+    
+    // Validate timeFrame
+    if (!['day', 'week'].includes(timeFrame)) {
+      return res.status(400).json({ error: 'Invalid time frame' });
+    }
+
     const params = {
       apiKey: SPOONACULAR_API_KEY,
-      timeFrame: 'day',
+      timeFrame: timeFrame,
       targetCalories: targetCalories,
       diet: diet || undefined,
-      exclude: exclude || undefined // Add exclude parameter
+      exclude: exclude || undefined
     };
 
     // Remove undefined parameters
@@ -334,28 +345,33 @@ app.get('/api/mealplan', async (req, res) => {
       { params }
     );
 
-    // Get detailed nutritional information for each meal
-    const mealsWithNutrition = await Promise.all(
-      response.data.meals.map(async (meal) => {
-        const nutritionResponse = await axios.get(
-          `https://api.spoonacular.com/recipes/${meal.id}/nutritionWidget.json`,
-          { params: { apiKey: SPOONACULAR_API_KEY } }
-        );
-        return { ...meal, calories: parseFloat(nutritionResponse.data.calories) };
-      })
-    );
+    // Process response based on timeFrame
+    let processedData = response.data;
 
-    response.data.meals = mealsWithNutrition;
-    response.data.filters = { 
+    // For daily plans, add nutrition details
+    if (timeFrame === 'day') {
+      const mealsWithNutrition = await Promise.all(
+        response.data.meals.map(async (meal) => {
+          const nutritionResponse = await axios.get(
+            `https://api.spoonacular.com/recipes/${meal.id}/nutritionWidget.json`,
+            { params: { apiKey: SPOONACULAR_API_KEY } }
+          );
+          return { ...meal, calories: parseFloat(nutritionResponse.data.calories) };
+        })
+      );
+      processedData.meals = mealsWithNutrition;
+    }
+
+    processedData.filters = { 
       diet: diet || 'none',
-      exclude: exclude || 'none' // Add exclude to filters
+      exclude: exclude || 'none',
+      timeFrame: timeFrame
     };
 
-    res.json(response.data);
+    res.json(processedData);
   } catch (error) {
     console.error("Error in /api/mealplan:", error.response?.data || error.message);
     
-    // Handle exclusion-related errors
     if (error.response?.status === 400) {
       return res.status(400).json({ 
         error: 'No meal plan found. Please adjust your filters or excluded ingredients.'
