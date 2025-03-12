@@ -61,12 +61,23 @@ export default function MealPlan() {
           <div className="bg-gray-800 p-4 rounded-lg mb-6">
             <h2 className="text-yellow-400 text-lg font-bold mb-2">Applied Filters</h2>
             <div className="flex flex-wrap gap-4">
+              {/* Diet filter */}
               <div className="flex items-center space-x-2">
                 <span className="text-gray-300">Diet:</span>
                 <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
                   {mealPlanData.filters.diet || 'None'}
                 </span>
               </div>
+              
+              {/* Exclusions filter */}
+              {mealPlanData.filters.exclude && mealPlanData.filters.exclude !== 'none' && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-300">Excluding:</span>
+                  <span className="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-sm">
+                    {mealPlanData.filters.exclude}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

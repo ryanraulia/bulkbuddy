@@ -312,16 +312,18 @@ app.get('/api/food', async (req, res) => {
 });
 
 
+
 // server/index.js - Update /api/mealplan endpoint
 app.get('/api/mealplan', async (req, res) => {
   try {
-    const { targetCalories, diet } = req.query;
+    const { targetCalories, diet, exclude } = req.query;
     
     const params = {
       apiKey: SPOONACULAR_API_KEY,
       timeFrame: 'day',
       targetCalories: targetCalories,
-      diet: diet || undefined
+      diet: diet || undefined,
+      exclude: exclude || undefined // Add exclude parameter
     };
 
     // Remove undefined parameters
@@ -344,14 +346,29 @@ app.get('/api/mealplan', async (req, res) => {
     );
 
     response.data.meals = mealsWithNutrition;
-    response.data.filters = { diet: diet || 'none' }; // Removed intolerances from filters
+    response.data.filters = { 
+      diet: diet || 'none',
+      exclude: exclude || 'none' // Add exclude to filters
+    };
 
     res.json(response.data);
   } catch (error) {
     console.error("Error in /api/mealplan:", error.response?.data || error.message);
-    res.status(500).json({ error: 'Error fetching meal plan' });
+    
+    // Handle exclusion-related errors
+    if (error.response?.status === 400) {
+      return res.status(400).json({ 
+        error: 'No meal plan found. Please adjust your filters or excluded ingredients.'
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Error fetching meal plan',
+      details: error.response?.data || error.message
+    });
   }
 });
+
 
 
 app.get('/api/recipe/:id', async (req, res) => {

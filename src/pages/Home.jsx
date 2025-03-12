@@ -5,6 +5,7 @@ import { FaUtensils, FaAppleAlt, FaCheck } from 'react-icons/fa';
 export default function Home() {
   const [targetCalories, setTargetCalories] = useState('');
   const [diet, setDiet] = useState('');
+  const [exclude, setExclude] = useState(''); // Add state for exclusions
   const navigate = useNavigate();
 
   const dietaryOptions = [
@@ -16,27 +17,34 @@ export default function Home() {
     { value: "paleo", label: "Paleo" }
   ];
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Process exclusions
+      const excludeIngredients = exclude.split(',')
+        .map(item => item.trim())
+        .filter(item => item !== '')
+        .join(',');
+
       const queryParams = new URLSearchParams({
         targetCalories: targetCalories,
       });
       
       if (diet) queryParams.append('diet', diet);
+      if (excludeIngredients) queryParams.append('exclude', excludeIngredients);
 
       const response = await fetch(`http://localhost:5000/api/mealplan?${queryParams.toString()}`);
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate meal plan');
       }
       const data = await response.json();
       navigate('/mealplan', { state: data });
     } catch (error) {
       console.error('Error fetching meal plan:', error);
+      alert(error.message); // Show error message to user
     }
   };
-
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-[#FAFAFA] text-[#212529] py-16 px-4">
@@ -67,7 +75,7 @@ export default function Home() {
           {/* Card Content */}
           <div className="p-6">
             <p className="mb-6 text-gray-700">
-              Create your personalized meal plan by entering your daily calorie target and dietary preferences below.
+              Create your personalized meal plan by entering your daily calorie target, dietary preferences, and any ingredients to exclude below.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -114,6 +122,22 @@ export default function Home() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Exclude Ingredients Input */}
+              <div>
+                <label htmlFor="exclude-input" className="block text-sm font-medium text-gray-700 mb-2">
+                  Exclude Ingredients (comma-separated)
+                </label>
+                <input
+                  id="exclude-input"
+                  type="text"
+                  placeholder="e.g., nuts, dairy, gluten"
+                  value={exclude}
+                  onChange={(e) => setExclude(e.target.value)}
+                  className="w-full p-3 bg-white text-[#212529] border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition"
+                />
+                <p className="mt-2 text-sm text-gray-400">Enter ingredients you want to avoid</p>
               </div>
 
               {/* Submit Button */}
