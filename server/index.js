@@ -146,7 +146,9 @@ app.get('/api/recipes/search', async (req, res) => {
     const allowedFilters = [
       'diet', 'cuisine', 'intolerances', 'excludeIngredients', 'type',
       'maxReadyTime', 'minCalories', 'maxCalories', 'includeIngredients',
-      'fillIngredients', 'sort', 'sortDirection', 'offset', 'number'
+      'fillIngredients', 'sort', 'sortDirection', 'offset', 'number',
+      // Add macronutrient filters
+      'minProtein', 'maxProtein', 'minCarbs', 'maxCarbs', 'minFat', 'maxFat'
     ];
 
     // Check if we should call Spoonacular (either has query or filters)
@@ -223,6 +225,32 @@ app.get('/api/recipes/search', async (req, res) => {
       if (filters.maxCalories) {
         userConditions.push('recipes.calories <= ?');
         userParams.push(filters.maxCalories);
+      }
+
+      // Add macronutrient filters for user recipes
+      if (filters.minProtein) {
+        userConditions.push('recipes.protein >= ?');
+        userParams.push(filters.minProtein);
+      }
+      if (filters.maxProtein) {
+        userConditions.push('recipes.protein <= ?');
+        userParams.push(filters.maxProtein);
+      }
+      if (filters.minCarbs) {
+        userConditions.push('recipes.carbs >= ?');
+        userParams.push(filters.minCarbs);
+      }
+      if (filters.maxCarbs) {
+        userConditions.push('recipes.carbs <= ?');
+        userParams.push(filters.maxCarbs);
+      }
+      if (filters.minFat) {
+        userConditions.push('recipes.fat >= ?');
+        userParams.push(filters.minFat);
+      }
+      if (filters.maxFat) {
+        userConditions.push('recipes.fat <= ?');
+        userParams.push(filters.maxFat);
       }
 
       const [userRecipes] = await db.promise().query(

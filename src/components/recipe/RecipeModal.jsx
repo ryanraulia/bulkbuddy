@@ -178,7 +178,7 @@ const RecipeModal = ({ recipeId, onClose }) => {
               )}
 
               {activeTab === 'instructions' && (
-                <div className="prose prose-invert max-w-none prose-teal prose-lg">
+                <div className="prose prose-invert max-w-none prose-lg text-white">
                   <div dangerouslySetInnerHTML={{ __html: recipe.instructions }} />
                 </div>
               )}

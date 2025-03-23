@@ -48,9 +48,17 @@ const RecipeCard = ({ recipe, onClick, onDelete }) => {
       <h2 className={`text-lg font-semibold mt-2 text-center ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>
         {recipe.title}
       </h2>
-      <p className={`text-sm text-center mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-        Submitted by: {recipe.username}
-      </p>
+      {/* Conditionally render the "Submitted by:" text */}
+      {recipe.source === 'user' && (
+        <p className={`text-sm text-center mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+          Submitted by: {recipe.username}
+        </p>
+      )}
+      {recipe.source === 'spoonacular' && (
+        <p className={`text-sm text-center mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+          Source: Spoonacular
+        </p>
+      )}
     </div>
   );
 };
