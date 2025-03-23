@@ -318,16 +318,14 @@ app.get('/api/food', async (req, res) => {
         params: {
           apiKey: process.env.SPOONACULAR_API_KEY,
           query: q,
-          number: 3 // Limit results to manage API costs
+          number: 3
         }
       }
     );
 
-    if (!searchResponse.data.results || !searchResponse.data.results.length) {
-      return res.json([]);
-    }
+    if (!searchResponse.data.results?.length) return res.json([]);
 
-    // Step 2: Get detailed nutrition for each ingredient
+    // Step 2: Get detailed nutrition
     const detailedRequests = searchResponse.data.results.map(ingredient => 
       axios.get(
         `https://api.spoonacular.com/food/ingredients/${ingredient.id}/information`,
@@ -338,34 +336,40 @@ app.get('/api/food', async (req, res) => {
             unit: 'grams'
           }
         }
-      ).catch(err => null) // Handle individual request failures
+      ).catch(err => null)
     );
 
     const detailedResults = await Promise.allSettled(detailedRequests);
 
-    // Step 3: Process successful responses
+    // Step 3: Process responses with full nutrition data
     const simplifiedResults = detailedResults
       .map(result => {
         if (result.status !== 'fulfilled' || !result.value?.data) return null;
         
         const data = result.value.data;
-        const nutrients = (data.nutrition?.nutrients || []).reduce((acc, nutrient) => {
-          switch(nutrient.name) {
-            case 'Calories': acc.calories = nutrient.amount; break;
-            case 'Protein': acc.protein = nutrient.amount; break;
-            case 'Fat': acc.fat = nutrient.amount; break;
-            case 'Carbohydrates': acc.carbs = nutrient.amount; break;
-          }
+        const nutrition = data.nutrition || {};
+        const nutrients = nutrition.nutrients || [];
+        
+        // Create a map of nutrients by lowercase name
+        const nutrientMap = nutrients.reduce((acc, nutrient) => {
+          const name = nutrient.name.toLowerCase().replace(/\s+/g, '');
+          acc[name] = nutrient.amount;
           return acc;
-        }, { calories: 0, protein: 0, fat: 0, carbs: 0 });
+        }, {});
 
         return {
           fdcId: data.id,
           description: data.name,
-          ...nutrients
+          calories: nutrientMap.calories || 0,
+          protein: nutrientMap.protein || 0,
+          fat: nutrientMap.fat || 0,
+          carbs: nutrientMap.carbohydrates || 0,
+          sugar: nutrientMap.sugars || nutrientMap.sugar || 0,
+          fiber: nutrientMap.fiber || nutrientMap.dietaryfiber || 0,
+          sodium: nutrientMap.sodium || 0
         };
       })
-      .filter(item => item !== null); // Remove failed requests
+      .filter(item => item !== null);
 
     res.json(simplifiedResults);
   } catch (error) {
@@ -376,7 +380,6 @@ app.get('/api/food', async (req, res) => {
     });
   }
 });
-
 
 
 // Modify the /api/mealplan endpoint
