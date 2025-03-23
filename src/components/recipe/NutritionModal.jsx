@@ -19,6 +19,20 @@ const NutritionModal = ({ recipe, onClose }) => {
   
   // Filter nutrients by category
   const getNutrientsByCategory = (category) => {
+    // Handle user-submitted recipes
+    if (recipe.source === 'user') {
+      const categoryMap = {
+        macros: ['Protein', 'Fat', 'Carbohydrates', 'Sugar', 'Fiber'],
+        vitamins: ['Vitamin B6', 'Folate', 'Vitamin B12', 'Vitamin C', 'Vitamin K', 'Vitamin E', 'Vitamin A'],
+        minerals: ['Calcium', 'Iron', 'Magnesium', 'Potassium', 'Zinc', 'Phosphorus', 'Sodium']
+      };
+      
+      return recipe.nutrition.nutrients.filter(n => 
+        categoryMap[category].includes(n.name)
+      );
+    }
+    
+    // Original Spoonacular handling
     return recipe.nutrition?.nutrients.filter(n => nutrientCategories[category].includes(n.name)) || [];
   };
   
@@ -30,15 +44,20 @@ const NutritionModal = ({ recipe, onClose }) => {
     return darkMode ? 'text-red-400' : 'text-red-500';
   };
   
-  // Get dietary tags
+  // Calculate health score
+  const healthScore = recipe.very_healthy ? 95 : recipe.budget_friendly ? 85 : 75;
+  
+  // Update getDietaryTags function
   const getDietaryTags = () => {
     const tags = [];
-    if (recipe.glutenFree) tags.push({ name: 'Gluten-Free', color: darkMode ? 'bg-purple-600' : 'bg-purple-500' });
+    if (recipe.gluten_free) tags.push({ name: 'Gluten-Free', color: darkMode ? 'bg-purple-600' : 'bg-purple-500' });
     if (recipe.vegetarian) tags.push({ name: 'Vegetarian', color: darkMode ? 'bg-green-600' : 'bg-green-500' });
     if (recipe.vegan) tags.push({ name: 'Vegan', color: darkMode ? 'bg-green-700' : 'bg-green-600' });
-    if (recipe.dairyFree) tags.push({ name: 'Dairy-Free', color: darkMode ? 'bg-blue-600' : 'bg-blue-500' });
-    if (recipe.lowFodmap) tags.push({ name: 'Low FODMAP', color: darkMode ? 'bg-yellow-600' : 'bg-yellow-500' });
+    if (recipe.dairy_free) tags.push({ name: 'Dairy-Free', color: darkMode ? 'bg-blue-600' : 'bg-blue-500' });
+    if (recipe.low_fodmap) tags.push({ name: 'Low FODMAP', color: darkMode ? 'bg-yellow-600' : 'bg-yellow-500' });
     if (recipe.sustainable) tags.push({ name: 'Sustainable', color: darkMode ? 'bg-teal-600' : 'bg-teal-500' });
+    if (recipe.very_healthy) tags.push({ name: 'Very Healthy', color: darkMode ? 'bg-pink-600' : 'bg-pink-500' });
+    if (recipe.budget_friendly) tags.push({ name: 'Budget-Friendly', color: darkMode ? 'bg-orange-600' : 'bg-orange-500' });
     return tags;
   };
 
@@ -96,8 +115,8 @@ const NutritionModal = ({ recipe, onClose }) => {
                 
                 <div className={`flex flex-col items-center p-4 ${darkMode ? 'bg-[#1E1E1E]' : 'bg-gray-100'} rounded-lg`}>
                   <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Health Score</span>
-                  <span className={`text-2xl font-bold ${getHealthScoreColor(recipe.healthScore)}`}>
-                    {recipe.healthScore || 'N/A'}
+                  <span className={`text-2xl font-bold ${getHealthScoreColor(healthScore)}`}>
+                    {healthScore || 'N/A'}
                   </span>
                 </div>
                 
@@ -239,7 +258,7 @@ const NutritionModal = ({ recipe, onClose }) => {
                 <h3 className={`text-lg font-semibold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-3`}>Dietary Information</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.glutenFree ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.gluten_free ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Gluten-Free</span>
                   </div>
                   <div className="flex items-center">
@@ -251,11 +270,11 @@ const NutritionModal = ({ recipe, onClose }) => {
                     <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Vegan</span>
                   </div>
                   <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.dairyFree ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.dairy_free ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Dairy-Free</span>
                   </div>
                   <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.lowFodmap ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.low_fodmap ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Low FODMAP</span>
                   </div>
                   <div className="flex items-center">
@@ -263,11 +282,11 @@ const NutritionModal = ({ recipe, onClose }) => {
                     <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Sustainable</span>
                   </div>
                   <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.veryHealthy ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.very_healthy ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Very Healthy</span>
                   </div>
                   <div className="flex items-center">
-                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.cheap ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <div className={`w-4 h-4 rounded-full mr-2 ${recipe.budget_friendly ? 'bg-green-500' : 'bg-red-500'}`}></div>
                     <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Budget-Friendly</span>
                   </div>
                 </div>

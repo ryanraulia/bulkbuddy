@@ -74,7 +74,7 @@ export default function Recipes() {
   };
 
   const handleAddRecipe = () => {
-    navigate('/add-recipe');
+    navigate('src\components\forms\RecipeForm.jsx');
   };
 
   const clearFilters = () => {

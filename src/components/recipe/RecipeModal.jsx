@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NutritionModal from './NutritionModal';
-import { Clock, User, Calendar, Star, X, Info } from 'lucide-react';
+import { Clock, User, Calendar, Star, X, Info, Utensils, Leaf } from 'lucide-react';
 
 const RecipeModal = ({ recipeId, onClose }) => {
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isNutritionModalOpen, setIsNutritionModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('ingredients');
+  const [showMealPlanForm, setShowMealPlanForm] = useState(false);
+  const [mealDate, setMealDate] = useState(new Date().toISOString().split('T')[0]); // Default to today's date
+  const [mealType, setMealType] = useState('dinner');
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -81,8 +84,27 @@ const RecipeModal = ({ recipeId, onClose }) => {
             <span>Health score: {recipe.healthScore}</span>
           </div>
         )}
+        {recipe.vegetarian && (
+          <div className="flex items-center bg-green-900 bg-opacity-70 px-3 py-1 rounded-full">
+            <Leaf size={16} className="mr-1 text-green-300" />
+            <span>Vegetarian</span>
+          </div>
+        )}
       </div>
     );
+  };
+
+  const getDietaryTags = () => {
+    return [
+      recipe.gluten_free && { name: 'Gluten-Free', color: 'bg-purple-600' },
+      recipe.vegetarian && { name: 'Vegetarian', color: 'bg-green-600' },
+      recipe.vegan && { name: 'Vegan', color: 'bg-green-700' },
+      recipe.dairy_free && { name: 'Dairy-Free', color: 'bg-blue-600' },
+      recipe.low_fodmap && { name: 'Low FODMAP', color: 'bg-yellow-600' },
+      recipe.sustainable && { name: 'Sustainable', color: 'bg-teal-600' },
+      recipe.very_healthy && { name: 'Very Healthy', color: 'bg-emerald-600' },
+      recipe.budget_friendly && { name: 'Budget Friendly', color: 'bg-orange-600' }
+    ].filter(Boolean);
   };
 
   return (
@@ -186,6 +208,87 @@ const RecipeModal = ({ recipeId, onClose }) => {
 
             {/* Footer */}
             <div className="p-4 border-t border-gray-700 mt-auto bg-gray-800/50">
+              {recipe.source !== 'user' && (
+                <button
+                  onClick={() => setShowMealPlanForm(true)}
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg hover:from-orange-400 hover:to-amber-400 transition-all font-medium flex items-center justify-center shadow-lg mb-3"
+                >
+                  <Utensils size={18} className="mr-2" />
+                  Add to Meal Plan
+                </button>
+              )}
+
+              {showMealPlanForm && (
+                <div className="bg-gray-800/70 p-4 rounded-lg mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-medium text-white">Plan This Meal</h3>
+                    <button 
+                      onClick={() => setShowMealPlanForm(false)}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="text-gray-300" size={18} />
+                      <input
+                        type="date"
+                        value={mealDate}
+                        onChange={(e) => setMealDate(e.target.value)}
+                        className="bg-gray-700 text-white px-3 py-2 rounded-lg w-full"
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Utensils className="text-gray-300" size={18} />
+                      <select
+                        value={mealType}
+                        onChange={(e) => setMealType(e.target.value)}
+                        className="bg-gray-700 text-white px-3 py-2 rounded-lg w-full"
+                      >
+                        <option value="breakfast">Breakfast</option>
+                        <option value="lunch">Lunch</option>
+                        <option value="dinner">Dinner</option>
+                        <option value="snack">Snack</option>
+                      </select>
+                    </div>
+                    
+                    <button
+                      onClick={async () => {
+                        if (!mealDate) {
+                          alert('Please select a date');
+                          return;
+                        }
+                        
+                        try {
+                          await axios.post('/api/meal-plans', {
+                            recipeId: recipe.id,
+                            source: recipe.source,
+                            date: mealDate,
+                            mealType: mealType
+                          }, { 
+                            withCredentials: true,
+                            validateStatus: (status) => status < 500 
+                          });
+                          
+                          setShowMealPlanForm(false);
+                          alert('Added to meal plan!');
+                        } catch (error) {
+                          console.error('Error adding to meal plan:', error);
+                          alert(error.response?.data?.error || 'Error adding to meal plan');
+                        }
+                      }}
+                      className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg transition-colors"
+                    >
+                      Add to Plan
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={handleOpenNutritionModal}
                 className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white py-3 rounded-lg hover:from-teal-400 hover:to-emerald-400 transition-all font-medium flex items-center justify-center shadow-lg"
@@ -198,6 +301,7 @@ const RecipeModal = ({ recipeId, onClose }) => {
             {isNutritionModalOpen && (
               <NutritionModal
                 recipe={recipe}
+                dietaryTags={getDietaryTags()}
                 onClose={handleCloseNutritionModal}
               />
             )}

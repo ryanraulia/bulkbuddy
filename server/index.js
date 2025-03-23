@@ -477,7 +477,123 @@ app.get('/api/mealplan', async (req, res) => {
   }
 });
 
+// Add to meal plan
+app.post('/api/meal-plans', async (req, res) => {
+  const token = req.cookies.jwt;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
 
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { recipeId, source, date, mealType } = req.body;
+
+    // Enhanced validation
+    const errors = [];
+    if (!recipeId) errors.push('Recipe ID is required');
+    if (!source || !['spoonacular', 'user'].includes(source)) errors.push('Invalid source');
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) errors.push('Invalid date format (YYYY-MM-DD)');
+    if (!mealType || !['breakfast', 'lunch', 'dinner', 'snack'].includes(mealType)) {
+      errors.push('Invalid meal type');
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ error: errors.join(', ') });
+    }
+
+    // Check recipe existence for user recipes
+    if (source === 'user') {
+      const [recipes] = await db.promise().query(
+        "SELECT id FROM recipes WHERE id = ? AND source = 'user'",
+        [recipeId]
+      );
+      if (recipes.length === 0) {
+        return res.status(404).json({ error: "Recipe not found" });
+      }
+    }
+
+    // Insert meal plan entry
+    const [result] = await db.promise().query(
+      "INSERT INTO meal_plans (user_id, recipe_id, source, date, meal_type) VALUES (?, ?, ?, ?, ?)",
+      [decoded.id, recipeId, source, date, mealType]
+    );
+
+    res.status(201).json({ id: result.insertId });
+  } catch (error) {
+    console.error("Meal plan add error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+// Get meal plans
+app.get('/api/meal-plans', async (req, res) => {
+  const token = req.cookies.jwt;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { startDate, endDate } = req.query;
+
+    let query = "SELECT * FROM meal_plans WHERE user_id = ?";
+    const params = [decoded.id];
+
+    if (startDate && endDate) {
+      query += " AND date BETWEEN ? AND ?";
+      params.push(startDate, endDate);
+    }
+
+    const [mealPlans] = await db.promise().query(query, params);
+
+    // Enrich with recipe data
+    const enrichedPlans = await Promise.all(
+      mealPlans.map(async plan => {
+        try {
+          if (plan.source === 'spoonacular') {
+            const response = await axios.get(
+              `https://api.spoonacular.com/recipes/${plan.recipe_id}/information`,
+              { params: { apiKey: SPOONACULAR_API_KEY } }
+            );
+            return { ...plan, recipe: response.data };
+          } else {
+            const [recipes] = await db.promise().query(
+              "SELECT * FROM recipes WHERE id = ?",
+              [plan.recipe_id]
+            );
+            return { ...plan, recipe: recipes[0] };
+          }
+        } catch (error) {
+          console.error("Error fetching recipe:", error);
+          return plan;
+        }
+      })
+    );
+
+    res.json(enrichedPlans);
+  } catch (error) {
+    console.error("Meal plan fetch error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Delete from meal plan
+app.delete('/api/meal-plans/:id', async (req, res) => {
+  const token = req.cookies.jwt;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const [result] = await db.promise().query(
+      "DELETE FROM meal_plans WHERE id = ? AND user_id = ?",
+      [req.params.id, decoded.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Entry not found" });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Meal plan delete error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 app.get('/api/recipe/:id', async (req, res) => {
   try {
@@ -819,8 +935,6 @@ if (!fs.existsSync('uploads/recipes')) {
 
 // Add this ABOVE the recipe submission endpoint
 app.use('/uploads/recipes', express.static(path.join(__dirname, 'uploads', 'recipes')));
-
-// Recipe submission endpoint
 app.post('/api/recipes/submit', recipeUpload.single('image'), async (req, res) => {
   try {
     const token = req.cookies.jwt;
@@ -828,12 +942,13 @@ app.post('/api/recipes/submit', recipeUpload.single('image'), async (req, res) =
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Validate nutrition fields
+    // Validate required fields
     const { title, instructions, calories, protein, fat, carbs, ingredients } = req.body;
     if (!title || !instructions || !calories || !protein || !fat || !carbs || !ingredients) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
+    // Parse and validate nutritional fields
     const recipeData = {
       user_id: decoded.id,
       title,
@@ -845,11 +960,36 @@ app.post('/api/recipes/submit', recipeUpload.single('image'), async (req, res) =
       protein: parseFloat(protein),
       fat: parseFloat(fat),
       carbs: parseFloat(carbs),
+      sugar: parseFloat(req.body.sugar),
+      fiber: parseFloat(req.body.fiber),
+      vitamin_b6: parseFloat(req.body.vitamin_b6),
+      folate: parseFloat(req.body.folate),
+      vitamin_b12: parseFloat(req.body.vitamin_b12),
+      vitamin_c: parseFloat(req.body.vitamin_c),
+      vitamin_k: parseFloat(req.body.vitamin_k),
+      vitamin_e: parseFloat(req.body.vitamin_e),
+      vitamin_a: parseFloat(req.body.vitamin_a),
+      sodium: parseFloat(req.body.sodium),
+      zinc: parseFloat(req.body.zinc),
+      iron: parseFloat(req.body.iron),
+      phosphorus: parseFloat(req.body.phosphorus),
+      magnesium: parseFloat(req.body.magnesium),
+      potassium: parseFloat(req.body.potassium),
+      calcium: parseFloat(req.body.calcium),
+      gluten_free: req.body.glutenFree ? req.body.glutenFree === 'true' : false,
+      vegetarian: req.body.vegetarian ? req.body.vegetarian === 'true' : false,
+      vegan: req.body.vegan ? req.body.vegan === 'true' : false,
+      dairy_free: req.body.dairyFree ? req.body.dairyFree === 'true' : false,
+      low_fodmap: req.body.lowFodmap ? req.body.lowFodmap === 'true' : false,
+      sustainable: req.body.sustainable ? req.body.sustainable === 'true' : false,
+      very_healthy: req.body.veryHealthy ? req.body.veryHealthy === 'true' : false,
+      budget_friendly: req.body.budgetFriendly ? req.body.budgetFriendly === 'true' : false,
       source: 'user',
       status: 'pending', // Force status to pending for moderation
       image: req.file ? `/uploads/recipes/${req.file.filename}` : null // Remove SERVER_URL prefix
     };
 
+    // Insert recipe into the database
     const [result] = await db.promise().query(
       "INSERT INTO recipes SET ?",
       [recipeData]
@@ -864,12 +1004,10 @@ app.post('/api/recipes/submit', recipeUpload.single('image'), async (req, res) =
     res.status(500).json({ error: "Error submitting recipe" });
   }
 });
-
-// Update the user recipe endpoint
 app.get('/api/user-recipe/:id', async (req, res) => {
   try {
     const [recipes] = await db.promise().query(
-      `SELECT *, 
+      `SELECT *,
        ingredients AS extendedIngredients,
        CONCAT('User Submitted Recipe • ', status) as sourceText
        FROM recipes 
@@ -879,18 +1017,46 @@ app.get('/api/user-recipe/:id', async (req, res) => {
 
     if (recipes.length === 0) return res.status(404).json({ error: "Recipe not found" });
 
-    const recipe = {
-      ...recipes[0],
+    // Convert user recipe format to match Spoonacular's nutrition structure
+    const userRecipe = recipes[0];
+    const formattedRecipe = {
+      ...userRecipe,
       source: 'user',
-      title: recipes[0].title,
-      extendedIngredients: recipes[0].ingredients 
-        ? recipes[0].ingredients.split('\n').map(ing => ({ original: ing }))
-        : [],
-      instructions: recipes[0].instructions || 'No instructions provided',
-      image: recipes[0].image || '/default-food.jpg'
+      nutrition: {
+        nutrients: [
+          { name: 'Calories', amount: userRecipe.calories, unit: 'kcal' },
+          { name: 'Protein', amount: userRecipe.protein, unit: 'g' },
+          { name: 'Fat', amount: userRecipe.fat, unit: 'g' },
+          { name: 'Carbohydrates', amount: userRecipe.carbs, unit: 'g' },
+          { name: 'Sugar', amount: userRecipe.sugar, unit: 'g' },
+          { name: 'Fiber', amount: userRecipe.fiber, unit: 'g' },
+          { name: 'Vitamin B6', amount: userRecipe.vitamin_b6, unit: 'mg' },
+          { name: 'Folate', amount: userRecipe.folate, unit: 'mcg' },
+          { name: 'Vitamin B12', amount: userRecipe.vitamin_b12, unit: 'mcg' },
+          { name: 'Vitamin C', amount: userRecipe.vitamin_c, unit: 'mg' },
+          { name: 'Vitamin K', amount: userRecipe.vitamin_k, unit: 'mcg' },
+          { name: 'Vitamin E', amount: userRecipe.vitamin_e, unit: 'mg' },
+          { name: 'Vitamin A', amount: userRecipe.vitamin_a, unit: 'IU' },
+          { name: 'Sodium', amount: userRecipe.sodium, unit: 'mg' },
+          { name: 'Zinc', amount: userRecipe.zinc, unit: 'mg' },
+          { name: 'Iron', amount: userRecipe.iron, unit: 'mg' },
+          { name: 'Phosphorus', amount: userRecipe.phosphorus, unit: 'mg' },
+          { name: 'Magnesium', amount: userRecipe.magnesium, unit: 'mg' },
+          { name: 'Potassium', amount: userRecipe.potassium, unit: 'mg' },
+          { name: 'Calcium', amount: userRecipe.calcium, unit: 'mg' }
+        ],
+        caloricBreakdown: {
+          percentProtein: ((userRecipe.protein * 4) / userRecipe.calories * 100) || 0,
+          percentFat: ((userRecipe.fat * 9) / userRecipe.calories * 100) || 0,
+          percentCarbs: ((userRecipe.carbs * 4) / userRecipe.calories * 100) || 0
+        }
+      },
+      extendedIngredients: userRecipe.ingredients?.split('\n').map(ing => ({ original: ing })) || [],
+      instructions: userRecipe.instructions || 'No instructions provided',
+      image: userRecipe.image || '/default-food.jpg'
     };
 
-    res.json(recipe);
+    res.json(formattedRecipe);
   } catch (error) {
     console.error("User recipe error:", error);
     res.status(500).json({ error: 'Error fetching recipe' });

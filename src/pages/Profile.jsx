@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import axios from 'axios'; // Import axios for making HTTP requests
+import RecipeModal from "../components/recipe/RecipeModal";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -15,6 +17,9 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRecipes, setUserRecipes] = useState([]); // Add state for user recipes
+  const [mealPlans, setMealPlans] = useState([]); // Add state for meal plans
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Add state for selected date
+  const [selectedMealPlanRecipe, setSelectedMealPlanRecipe] = useState(null); // Add this state
   const navigate = useNavigate();
   const { darkMode } = useTheme();
 
@@ -50,6 +55,21 @@ export default function Profile() {
     
     fetchUserAndRecipes();
   }, [navigate]);
+
+  // Add this useEffect for fetching meal plans
+  useEffect(() => {
+    const fetchMealPlans = async () => {
+      try {
+        const response = await axios.get(`/api/meal-plans?startDate=${selectedDate}&endDate=${selectedDate}`, {
+          withCredentials: true
+        });
+        setMealPlans(response.data);
+      } catch (error) {
+        console.error('Error fetching meal plans:', error);
+      }
+    };
+    fetchMealPlans();
+  }, [selectedDate]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -306,6 +326,93 @@ export default function Profile() {
             </div>
           )}
         </div>
+
+        {/* Meal Plan Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Your Meal Plan
+          </h2>
+          
+          <div className="mb-4">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className={`p-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100'}`}
+            />
+          </div>
+          
+          {mealPlans.length === 0 ? (
+            <p className="text-gray-600">No meals planned for this day.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {['breakfast', 'lunch', 'dinner', 'snack'].map((type) => (
+                <div key={type} className="bg-white rounded-lg shadow-md p-4">
+                  <h3 className="font-semibold capitalize mb-3 text-lg">{type}</h3>
+                  {mealPlans
+                    .filter(plan => plan.meal_type === type)
+                    .map(plan => (
+                      <div 
+                        key={plan.id} 
+                        className="mb-3 cursor-pointer transform transition-all hover:scale-105"
+                        onClick={() => setSelectedMealPlanRecipe({
+                          id: plan.recipe_id,
+                          source: plan.source
+                        })}
+                      >
+                        <div className="bg-gray-50 rounded-lg p-2">
+                          {plan.recipe?.image && (
+                            <img
+                              src={plan.recipe.source === 'user' 
+                                ? `http://localhost:5000${plan.recipe.image}`
+                                : plan.recipe.image}
+                              alt={plan.recipe.title}
+                              className="w-full h-32 object-cover rounded-lg mb-2"
+                            />
+                          )}
+                          <p className="font-medium text-sm text-gray-800">
+                            {plan.recipe?.title}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-500">
+                              {plan.recipe?.source === 'user' 
+                                ? 'Your Recipe' 
+                                : 'Spoonacular'}
+                            </span>
+                            <button 
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  await axios.delete(`/api/meal-plans/${plan.id}`, {
+                                    withCredentials: true
+                                  });
+                                  setMealPlans(prev => prev.filter(p => p.id !== plan.id));
+                                } catch (error) {
+                                  console.error('Error deleting meal plan:', error);
+                                }
+                              }}
+                              className="text-red-500 text-xs hover:text-red-700"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recipe Modal */}
+        {selectedMealPlanRecipe && (
+          <RecipeModal
+            recipeId={selectedMealPlanRecipe.id}
+            source={selectedMealPlanRecipe.source}
+            onClose={() => setSelectedMealPlanRecipe(null)}
+          />
+        )}
       </div>
     </div>
   );

@@ -10,6 +10,30 @@ const RecipeForm = ({ onClose }) => {
     protein: '',
     fat: '',
     carbs: '',
+    sugar: '',
+    fiber: '',
+    vitamin_b6: '',
+    folate: '',
+    vitamin_b12: '',
+    vitamin_c: '',
+    vitamin_k: '',
+    vitamin_e: '',
+    vitamin_a: '',
+    sodium: '',
+    zinc: '',
+    iron: '',
+    phosphorus: '',
+    magnesium: '',
+    potassium: '',
+    calcium: '',
+    glutenFree: false,
+    vegetarian: false,
+    vegan: false,
+    dairyFree: false,
+    lowFodmap: false,
+    sustainable: false,
+    veryHealthy: false,
+    budgetFriendly: false,
     image: null
   });
   const [error, setError] = useState('');
@@ -17,6 +41,10 @@ const RecipeForm = ({ onClose }) => {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCheckboxChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.checked });
   };
 
   const handleIngredientChange = (index, field, value) => {
@@ -47,6 +75,30 @@ const RecipeForm = ({ onClose }) => {
     data.append('protein', formData.protein);
     data.append('fat', formData.fat);
     data.append('carbs', formData.carbs);
+    data.append('sugar', formData.sugar);
+    data.append('fiber', formData.fiber);
+    data.append('vitamin_b6', formData.vitamin_b6);
+    data.append('folate', formData.folate);
+    data.append('vitamin_b12', formData.vitamin_b12);
+    data.append('vitamin_c', formData.vitamin_c);
+    data.append('vitamin_k', formData.vitamin_k);
+    data.append('vitamin_e', formData.vitamin_e);
+    data.append('vitamin_a', formData.vitamin_a);
+    data.append('sodium', formData.sodium);
+    data.append('zinc', formData.zinc);
+    data.append('iron', formData.iron);
+    data.append('phosphorus', formData.phosphorus);
+    data.append('magnesium', formData.magnesium);
+    data.append('potassium', formData.potassium);
+    data.append('calcium', formData.calcium);
+    data.append('glutenFree', formData.glutenFree);
+    data.append('vegetarian', formData.vegetarian);
+    data.append('vegan', formData.vegan);
+    data.append('dairyFree', formData.dairyFree);
+    data.append('lowFodmap', formData.lowFodmap);
+    data.append('sustainable', formData.sustainable);
+    data.append('veryHealthy', formData.veryHealthy);
+    data.append('budgetFriendly', formData.budgetFriendly);
     if (formData.image) {
       data.append('image', formData.image);
     }
@@ -143,7 +195,7 @@ const RecipeForm = ({ onClose }) => {
           </div>
 
           {/* Nutritional Information */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-gray-300 mb-2">Calories</label>
               <input
@@ -188,6 +240,242 @@ const RecipeForm = ({ onClose }) => {
                 className="w-full p-2 rounded bg-gray-700 text-white"
               />
             </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Sugar (g)</label>
+              <input
+                type="number"
+                name="sugar"
+                value={formData.sugar}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Fiber (g)</label>
+              <input
+                type="number"
+                name="fiber"
+                value={formData.fiber}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Vitamin B6 (mg)</label>
+              <input
+                type="number"
+                name="vitamin_b6"
+                value={formData.vitamin_b6}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Folate (mcg)</label>
+              <input
+                type="number"
+                name="folate"
+                value={formData.folate}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Vitamin B12 (mcg)</label>
+              <input
+                type="number"
+                name="vitamin_b12"
+                value={formData.vitamin_b12}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Vitamin C (mg)</label>
+              <input
+                type="number"
+                name="vitamin_c"
+                value={formData.vitamin_c}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Vitamin K (mcg)</label>
+              <input
+                type="number"
+                name="vitamin_k"
+                value={formData.vitamin_k}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Vitamin E (mg)</label>
+              <input
+                type="number"
+                name="vitamin_e"
+                value={formData.vitamin_e}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Vitamin A (IU)</label>
+              <input
+                type="number"
+                name="vitamin_a"
+                value={formData.vitamin_a}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Sodium (mg)</label>
+              <input
+                type="number"
+                name="sodium"
+                value={formData.sodium}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Zinc (mg)</label>
+              <input
+                type="number"
+                name="zinc"
+                value={formData.zinc}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Iron (mg)</label>
+              <input
+                type="number"
+                name="iron"
+                value={formData.iron}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Phosphorus (mg)</label>
+              <input
+                type="number"
+                name="phosphorus"
+                value={formData.phosphorus}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Magnesium (mg)</label>
+              <input
+                type="number"
+                name="magnesium"
+                value={formData.magnesium}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Potassium (mg)</label>
+              <input
+                type="number"
+                name="potassium"
+                value={formData.potassium}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Calcium (mg)</label>
+              <input
+                type="number"
+                name="calcium"
+                value={formData.calcium}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+          </div>
+
+          {/* Dietary Information */}
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="glutenFree"
+                checked={formData.glutenFree}
+                onChange={handleCheckboxChange}
+              />
+              <span className="text-gray-300">Gluten-Free</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="vegetarian"
+                checked={formData.vegetarian}
+                onChange={handleCheckboxChange}
+              />
+              <span className="text-gray-300">Vegetarian</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="vegan"
+                checked={formData.vegan}
+                onChange={handleCheckboxChange}
+              />
+              <span className="text-gray-300">Vegan</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="dairyFree"
+                checked={formData.dairyFree}
+                onChange={handleCheckboxChange}
+              />
+              <span className="text-gray-300">Dairy-Free</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="lowFodmap"
+                checked={formData.lowFodmap}
+                onChange={handleCheckboxChange}
+              />
+              <span className="text-gray-300">Low FODMAP</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="sustainable"
+                checked={formData.sustainable}
+                onChange={handleCheckboxChange}
+              />
+              <span className="text-gray-300">Sustainable</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="veryHealthy"
+                checked={formData.veryHealthy}
+                onChange={handleCheckboxChange}
+              />
+              <span className="text-gray-300">Very Healthy</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="budgetFriendly"
+                checked={formData.budgetFriendly}
+                onChange={handleCheckboxChange}
+              />
+              <span className="text-gray-300">Budget Friendly</span>
+            </label>
           </div>
 
           {/* Image Upload */}
