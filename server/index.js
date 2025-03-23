@@ -137,54 +137,116 @@ Message: ${message}
   }
 });
 
-// Update the /api/recipes/search endpoint
 app.get('/api/recipes/search', async (req, res) => {
   try {
-    const { query } = req.query;
+    const { query, includeUser, ...filters } = req.query;
     const combinedResults = [];
 
-    if (query) {
-      // Spoonacular results
-      const spoonacularResponse = await axios.get(
-        'https://api.spoonacular.com/recipes/complexSearch',
+    // List of allowed Spoonacular parameters
+    const allowedFilters = [
+      'diet', 'cuisine', 'intolerances', 'excludeIngredients', 'type',
+      'maxReadyTime', 'minCalories', 'maxCalories', 'includeIngredients',
+      'fillIngredients', 'sort', 'sortDirection', 'offset', 'number'
+    ];
+
+    // Check if we should call Spoonacular (either has query or filters)
+    const hasFilters = allowedFilters.some(param => filters[param]);
+    const isEmptySearch = !query && !hasFilters;
+
+    // Fetch Spoonacular results in all cases
+    if (isEmptySearch) {
+      // Get random recipes when no search/filters
+      const randomResponse = await axios.get(
+        'https://api.spoonacular.com/recipes/random',
         {
           params: {
             apiKey: SPOONACULAR_API_KEY,
-            query: query,
-            number: 8,
-            addRecipeInformation: true,
-            instructionsRequired: true
+            number: 8
           }
         }
       );
-      combinedResults.push(...spoonacularResponse.data.results.map(r => ({
+      combinedResults.push(...randomResponse.data.recipes.map(r => ({
         ...r,
         source: 'spoonacular'
       })));
+    } else {
+      // Existing search logic with query/filters
+      if (query || hasFilters) {
+        // Spoonacular API parameters
+        const spoonacularParams = {
+          apiKey: SPOONACULAR_API_KEY,
+          query: query || '', // Allow empty query with filters
+          number: 8,
+          addRecipeInformation: true,
+          instructionsRequired: true,
+        };
+
+        // Add allowed filters
+        allowedFilters.forEach(param => {
+          if (filters[param]) {
+            spoonacularParams[param] = filters[param];
+          }
+        });
+
+        // Remove undefined parameters
+        Object.keys(spoonacularParams).forEach(key => 
+          spoonacularParams[key] === undefined && delete spoonacularParams[key]
+        );
+
+        const spoonacularResponse = await axios.get(
+          'https://api.spoonacular.com/recipes/complexSearch',
+          { params: spoonacularParams }
+        );
+        
+        combinedResults.push(...spoonacularResponse.data.results.map(r => ({
+          ...r,
+          source: 'spoonacular'
+        })));
+      }
     }
 
-    // User recipes
-    const [userRecipes] = await db.promise().query(
-      `SELECT recipes.id AS recipe_id, recipes.title, recipes.image, recipes.calories, recipes.protein, recipes.fat, recipes.carbs, recipes.ingredients, recipes.created_at, users.name AS username
-       FROM recipes 
-       JOIN users ON recipes.user_id = users.id
-       WHERE recipes.source = 'user' 
-         AND recipes.status = 'approved' 
-         AND LOWER(recipes.title) LIKE LOWER(?)`,
-      [`%${query}%`]
-    );
+    // User recipes handling with filters
+    if (includeUser === 'true') {
+      const userConditions = [];
+      const userParams = [];
 
-    // Add safe handling for ingredients and image URLs
-    const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
-    combinedResults.push(...userRecipes.map(recipe => ({
-      ...recipe,
-      id: recipe.recipe_id, // Use the alias for the recipe ID
-      source: 'user',
-      image: recipe.image ? `${serverUrl}${recipe.image}` : '/default-food.jpg',
-      extendedIngredients: recipe.ingredients 
-        ? recipe.ingredients.split('\n').map(ing => ({ original: ing }))
-        : []
-    })));
+      if (query) {
+        userConditions.push('LOWER(recipes.title) LIKE LOWER(?)');
+        userParams.push(`%${query}%`);
+      }
+
+      // Add numeric filters for user recipes
+      if (filters.minCalories) {
+        userConditions.push('recipes.calories >= ?');
+        userParams.push(filters.minCalories);
+      }
+      if (filters.maxCalories) {
+        userConditions.push('recipes.calories <= ?');
+        userParams.push(filters.maxCalories);
+      }
+
+      const [userRecipes] = await db.promise().query(
+        `SELECT recipes.id AS recipe_id, recipes.title, recipes.image, 
+         recipes.calories, recipes.protein, recipes.fat, recipes.carbs, 
+         recipes.ingredients, recipes.created_at, users.name AS username
+         FROM recipes 
+         JOIN users ON recipes.user_id = users.id
+         WHERE recipes.source = 'user' 
+           AND recipes.status = 'approved'
+           ${userConditions.length ? 'AND ' + userConditions.join(' AND ') : ''}`,
+        userParams
+      );
+
+      // Add user recipes to results
+      const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+      combinedResults.push(...userRecipes.map(recipe => ({
+        ...recipe,
+        id: recipe.recipe_id, // Use the alias for the recipe ID
+        source: 'user',
+        image: recipe.image ? `${serverUrl}${recipe.image}` : '/default-food.jpg',
+        extendedIngredients: recipe.ingredients?.split('\n').map(ing => ({ original: ing })) || []
+      })));
+    }
 
     res.json(combinedResults);
   } catch (error) {
@@ -192,7 +254,6 @@ app.get('/api/recipes/search', async (req, res) => {
     res.status(500).json({ error: 'Error searching recipes' });
   }
 });
-
 // Update the /api/recipes/random endpoint
 app.get('/api/recipes/random', async (req, res) => {
   try {

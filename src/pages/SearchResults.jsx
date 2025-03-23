@@ -18,7 +18,9 @@ export default function SearchResults() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await axios.get(`/api/recipes/search?query=${query}`);
+        const response = await axios.get('/api/recipes/search', {
+          params: Object.fromEntries(new URLSearchParams(location.search))
+        });
         setResults(response.data);
       } catch (error) {
         console.error('Search error:', error);
@@ -28,14 +30,45 @@ export default function SearchResults() {
     };
 
     fetchResults();
-  }, [query]);
+  }, [location.search]);
+
+  // Early return for empty search state
+  if (!loading && !query && !location.search.includes('=')) {
+    return (
+      <div className={`min-h-screen py-8 ${darkMode ? 'bg-[#121212]' : 'bg-gray-100'}`}>
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h2 className={`text-2xl mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            Try searching for recipes or applying filters to get started!
+          </h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#121212] via-[#181818] to-[#121212]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'}`}>
       <div className="max-w-7xl mx-auto px-4">
+        {/* Conditional heading */}
         <h1 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-6`}>
-          Search Results for "{query}"
+          {query ? `Search Results for "${query}"` : 'Filtered Recipes'}
         </h1>
+
+        {/* Filter Display */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {Object.entries(Object.fromEntries(new URLSearchParams(location.search))).map(([key, value]) => {
+            if (key === 'q' || !value) return null;
+            return (
+              <span 
+                key={key}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  darkMode ? 'bg-blue-800 text-blue-100' : 'bg-blue-100 text-blue-800'
+                }`}
+              >
+                {key}: {value}
+              </span>
+            );
+          })}
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center p-4">
@@ -53,7 +86,7 @@ export default function SearchResults() {
           </div>
         ) : (
           <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-            No results found for "{query}". Try a different search term.
+            {query ? `No results found for "${query}". Try a different search term.` : 'No recipes found matching the filters'}
           </div>
         )}
 

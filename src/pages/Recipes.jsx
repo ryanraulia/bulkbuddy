@@ -15,6 +15,16 @@ export default function Recipes() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('popular');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [filters, setFilters] = useState({
+    diet: '',
+    cuisine: '',
+    intolerances: [],
+    type: '',
+    maxReadyTime: '',
+    minCalories: '',
+    maxCalories: ''
+  });
+  const [includeUserRecipes, setIncludeUserRecipes] = useState(true); // New state for including user recipes
   const navigate = useNavigate();
   const { user } = useAuth();
   const { darkMode } = useTheme();
@@ -38,9 +48,18 @@ export default function Recipes() {
     fetchRecipes();
   }, []);
 
+  // Update handleSearch to include user recipes toggle
   const handleSearch = async (e) => {
     e.preventDefault();
-    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    const params = new URLSearchParams({
+      q: searchQuery,
+      includeUser: includeUserRecipes, // Include user recipes toggle
+      ...Object.fromEntries(
+        Object.entries(filters)
+          .filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+      )
+    });
+    navigate(`/search?${params.toString()}`);
   };
 
   const handleDelete = (deletedId) => {
@@ -92,7 +111,7 @@ export default function Recipes() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for recipes, ingredients, or cuisines..."
+                  placeholder="Search recipes or apply filters..."
                   className={`w-full p-4 border-none focus:outline-none ${darkMode ? 'bg-[#1E1E1E] text-white' : 'bg-white text-gray-800'}`}
                 />
                 <button
@@ -100,6 +119,26 @@ export default function Recipes() {
                   className={`${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#007BFF] hover:bg-[#0056b3]'} text-white font-medium px-6 py-4 transition-colors focus:outline-none`}
                 >
                   Search
+                </button>
+              </div>
+
+              {/* Include User Recipes Toggle */}
+              <div className="flex items-center gap-2 mt-4">
+                <label className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Include User Recipes:
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIncludeUserRecipes(!includeUserRecipes)}
+                  className={`relative rounded-full w-12 h-6 transition-colors ${
+                    includeUserRecipes 
+                      ? 'bg-green-500' 
+                      : 'bg-gray-300'
+                  }`}
+                >
+                  <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transform transition-transform ${
+                    includeUserRecipes ? 'translate-x-6' : 'translate-x-0'
+                  }`} />
                 </button>
               </div>
             </form>
@@ -172,6 +211,73 @@ export default function Recipes() {
                 {category}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Filter UI Elements */}
+        <div className="flex flex-wrap gap-4 mt-4 justify-center">
+          <select
+            value={filters.diet}
+            onChange={(e) => setFilters({...filters, diet: e.target.value})}
+            className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}`}
+          >
+            <option value="">All Diets</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="glutenFree">Gluten Free</option>
+            <option value="ketogenic">Ketogenic</option>
+            <option value="pescetarian">Pescetarian</option>
+          </select>
+
+          <select
+            value={filters.cuisine}
+            onChange={(e) => setFilters({...filters, cuisine: e.target.value})}
+            className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}`}
+          >
+            <option value="">All Cuisines</option>
+            <option value="Italian">Italian</option>
+            <option value="Mexican">Mexican</option>
+            <option value="Asian">Asian</option>
+            <option value="Mediterranean">Mediterranean</option>
+            <option value="American">American</option>
+          </select>
+
+          <select
+            multiple
+            value={filters.intolerances}
+            onChange={(e) => setFilters({...filters, intolerances: [...e.target.selectedOptions].map(o => o.value)})}
+            className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}`}
+          >
+            <option value="dairy">Dairy Free</option>
+            <option value="egg">Egg Free</option>
+            <option value="gluten">Gluten Free</option>
+            <option value="peanut">Peanut Free</option>
+            <option value="soy">Soy Free</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Max Prep Time (mins)"
+            value={filters.maxReadyTime}
+            onChange={(e) => setFilters({...filters, maxReadyTime: e.target.value})}
+            className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}`}
+          />
+
+          <div className="flex gap-2">
+            <input
+              type="number"
+              placeholder="Min Calories"
+              value={filters.minCalories}
+              onChange={(e) => setFilters({...filters, minCalories: e.target.value})}
+              className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}`}
+            />
+            <input
+              type="number"
+              placeholder="Max Calories"
+              value={filters.maxCalories}
+              onChange={(e) => setFilters({...filters, maxCalories: e.target.value})}
+              className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-800'}`}
+            />
           </div>
         </div>
 
