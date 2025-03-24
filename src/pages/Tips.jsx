@@ -21,7 +21,7 @@ export default function Tips() {
 
         {/* Tip 2 */}
         <div className={`${darkMode ? 'bg-[#2D2D2D] border-gray-700' : 'bg-white border-gray-200'} p-6 rounded-2xl shadow-lg border`}>
-          <h2 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>2. Prioritize Protein Intake</h2>
+          <h2 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>2. Prioritise Protein Intake</h2>
           <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} mt-2`}>
             Aim for 1.6–3.1g of protein per kg of body weight daily to support muscle repair and growth. Visit <a href="https://www.health.com/muscle-building-diet-plan-11695087" className="text-blue-400">Health.com</a> for more details.
           </p>

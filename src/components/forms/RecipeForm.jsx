@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { X } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext'; // Import ThemeContext
 
 const RecipeForm = ({ onClose }) => {
+  const { darkMode } = useTheme(); // Get darkMode from ThemeContext
   const [formData, setFormData] = useState({
     title: '',
     ingredients: [{ name: '', amount: '', unit: '' }],
@@ -34,7 +37,7 @@ const RecipeForm = ({ onClose }) => {
     sustainable: false,
     veryHealthy: false,
     budgetFriendly: false,
-    image: null
+    image: null,
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -56,7 +59,7 @@ const RecipeForm = ({ onClose }) => {
   const addIngredient = () => {
     setFormData({
       ...formData,
-      ingredients: [...formData.ingredients, { name: '', amount: '', unit: '' }]
+      ingredients: [...formData.ingredients, { name: '', amount: '', unit: '' }],
     });
   };
 
@@ -69,46 +72,21 @@ const RecipeForm = ({ onClose }) => {
     setError('');
 
     const data = new FormData();
-    data.append('title', formData.title);
-    data.append('instructions', formData.instructions);
-    data.append('calories', formData.calories);
-    data.append('protein', formData.protein);
-    data.append('fat', formData.fat);
-    data.append('carbs', formData.carbs);
-    data.append('sugar', formData.sugar);
-    data.append('fiber', formData.fiber);
-    data.append('vitamin_b6', formData.vitamin_b6);
-    data.append('folate', formData.folate);
-    data.append('vitamin_b12', formData.vitamin_b12);
-    data.append('vitamin_c', formData.vitamin_c);
-    data.append('vitamin_k', formData.vitamin_k);
-    data.append('vitamin_e', formData.vitamin_e);
-    data.append('vitamin_a', formData.vitamin_a);
-    data.append('sodium', formData.sodium);
-    data.append('zinc', formData.zinc);
-    data.append('iron', formData.iron);
-    data.append('phosphorus', formData.phosphorus);
-    data.append('magnesium', formData.magnesium);
-    data.append('potassium', formData.potassium);
-    data.append('calcium', formData.calcium);
-    data.append('glutenFree', formData.glutenFree);
-    data.append('vegetarian', formData.vegetarian);
-    data.append('vegan', formData.vegan);
-    data.append('dairyFree', formData.dairyFree);
-    data.append('lowFodmap', formData.lowFodmap);
-    data.append('sustainable', formData.sustainable);
-    data.append('veryHealthy', formData.veryHealthy);
-    data.append('budgetFriendly', formData.budgetFriendly);
-    if (formData.image) {
-      data.append('image', formData.image);
-    }
-    data.append('ingredients', JSON.stringify(formData.ingredients));
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === 'ingredients') {
+        data.append(key, JSON.stringify(value));
+      } else if (key === 'image' && value) {
+        data.append(key, value);
+      } else {
+        data.append(key, value);
+      }
+    });
 
     try {
       const response = await fetch('/api/recipes/submit', {
         method: 'POST',
         credentials: 'include',
-        body: data
+        body: data,
       });
 
       if (!response.ok) {
@@ -124,26 +102,42 @@ const RecipeForm = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-yellow-400 mb-4">Submit New Recipe</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    // Outer overlay with transparent background and blur
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      {/* Modal content container with gradient background */}
+      <div className={`${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} rounded-xl shadow-2xl border ${darkMode ? 'border-gray-700' : 'border-gray-200'} max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col`}>
+        {/* Header with gradient overlay */}
+        <div className={`relative p-6 ${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <h2 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>Submit New Recipe</h2>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className={`absolute top-4 right-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full p-2 ${darkMode ? 'text-white' : 'text-gray-700'} hover:bg-opacity-90 hover:bg-red-600 transition-all z-10 shadow-lg`}
+            aria-label="Close modal"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Form content */}
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
           {/* Recipe Title */}
           <div>
-            <label className="block text-gray-300 mb-2">Recipe Title</label>
+            <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Recipe Title</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleInputChange}
               required
-              className="w-full p-2 rounded bg-gray-700 text-white"
+              className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200`}
+              placeholder="Enter recipe title"
             />
           </div>
 
           {/* Ingredients */}
           <div>
-            <label className="block text-gray-300 mb-2">Ingredients</label>
+            <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Ingredients</label>
             {formData.ingredients.map((ing, index) => (
               <div key={index} className="flex gap-2 mb-2">
                 <input
@@ -151,7 +145,7 @@ const RecipeForm = ({ onClose }) => {
                   placeholder="Name"
                   value={ing.name}
                   onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-                  className="flex-1 p-2 rounded bg-gray-700 text-white"
+                  className={`flex-1 p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors duration-200`}
                   required
                 />
                 <input
@@ -159,7 +153,7 @@ const RecipeForm = ({ onClose }) => {
                   placeholder="Amount"
                   value={ing.amount}
                   onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
-                  className="w-20 p-2 rounded bg-gray-700 text-white"
+                  className={`w-20 p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors duration-200`}
                   required
                 />
                 <input
@@ -167,7 +161,7 @@ const RecipeForm = ({ onClose }) => {
                   placeholder="Unit"
                   value={ing.unit}
                   onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
-                  className="w-20 p-2 rounded bg-gray-700 text-white"
+                  className={`w-20 p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors duration-200`}
                   required
                 />
               </div>
@@ -175,336 +169,182 @@ const RecipeForm = ({ onClose }) => {
             <button
               type="button"
               onClick={addIngredient}
-              className="text-yellow-400 hover:text-yellow-300 text-sm"
+              className={`${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-[#007BFF] hover:text-blue-600'} text-sm flex items-center transition-colors duration-200`}
             >
-              + Add Ingredient
+              <span className="mr-1">+</span> Add Ingredient
             </button>
           </div>
 
           {/* Instructions */}
           <div>
-            <label className="block text-gray-300 mb-2">Instructions</label>
+            <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Instructions</label>
             <textarea
               name="instructions"
               value={formData.instructions}
               onChange={handleInputChange}
               required
-              className="w-full p-2 rounded bg-gray-700 text-white"
+              className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none transition-colors duration-200`}
               rows="4"
+              placeholder="Enter step-by-step instructions"
             />
           </div>
 
           {/* Nutritional Information */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-gray-300 mb-2">Calories</label>
-              <input
-                type="number"
-                name="calories"
-                value={formData.calories}
-                onChange={handleInputChange}
-                required
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Protein (g)</label>
-              <input
-                type="number"
-                name="protein"
-                value={formData.protein}
-                onChange={handleInputChange}
-                required
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Fat (g)</label>
-              <input
-                type="number"
-                name="fat"
-                value={formData.fat}
-                onChange={handleInputChange}
-                required
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Carbs (g)</label>
-              <input
-                type="number"
-                name="carbs"
-                value={formData.carbs}
-                onChange={handleInputChange}
-                required
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Sugar (g)</label>
-              <input
-                type="number"
-                name="sugar"
-                value={formData.sugar}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Fiber (g)</label>
-              <input
-                type="number"
-                name="fiber"
-                value={formData.fiber}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Vitamin B6 (mg)</label>
-              <input
-                type="number"
-                name="vitamin_b6"
-                value={formData.vitamin_b6}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Folate (mcg)</label>
-              <input
-                type="number"
-                name="folate"
-                value={formData.folate}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Vitamin B12 (mcg)</label>
-              <input
-                type="number"
-                name="vitamin_b12"
-                value={formData.vitamin_b12}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Vitamin C (mg)</label>
-              <input
-                type="number"
-                name="vitamin_c"
-                value={formData.vitamin_c}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Vitamin K (mcg)</label>
-              <input
-                type="number"
-                name="vitamin_k"
-                value={formData.vitamin_k}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Vitamin E (mg)</label>
-              <input
-                type="number"
-                name="vitamin_e"
-                value={formData.vitamin_e}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Vitamin A (IU)</label>
-              <input
-                type="number"
-                name="vitamin_a"
-                value={formData.vitamin_a}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Sodium (mg)</label>
-              <input
-                type="number"
-                name="sodium"
-                value={formData.sodium}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Zinc (mg)</label>
-              <input
-                type="number"
-                name="zinc"
-                value={formData.zinc}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Iron (mg)</label>
-              <input
-                type="number"
-                name="iron"
-                value={formData.iron}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Phosphorus (mg)</label>
-              <input
-                type="number"
-                name="phosphorus"
-                value={formData.phosphorus}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Magnesium (mg)</label>
-              <input
-                type="number"
-                name="magnesium"
-                value={formData.magnesium}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Potassium (mg)</label>
-              <input
-                type="number"
-                name="potassium"
-                value={formData.potassium}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">Calcium (mg)</label>
-              <input
-                type="number"
-                name="calcium"
-                value={formData.calcium}
-                onChange={handleInputChange}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
+          <div>
+            <h3 className={`text-lg font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-3`}>Nutritional Information</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: 'Calories', name: 'calories' },
+                { label: 'Protein (g)', name: 'protein' },
+                { label: 'Fat (g)', name: 'fat' },
+                { label: 'Carbs (g)', name: 'carbs' },
+                { label: 'Sugar (g)', name: 'sugar' },
+                { label: 'Fiber (g)', name: 'fiber' },
+              ].map((field) => (
+                <div key={field.name}>
+                  <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2 text-sm`}>{field.label}</label>
+                  <input
+                    type="number"
+                    name={field.name}
+                    value={formData[field.name]}
+                    onChange={handleInputChange}
+                    required
+                    className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none text-sm transition-colors duration-200`}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
+          {/* Vitamins and Minerals - Collapsible Section */}
+          <div className={`border ${darkMode ? 'border-gray-700' : 'border-gray-300'} rounded-lg p-4 ${darkMode ? 'bg-gray-800/50' : 'bg-gray-100'}`}>
+            <details>
+              <summary className={`text-lg font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} cursor-pointer ${darkMode ? 'hover:text-blue-400' : 'hover:text-[#007BFF]'} transition-colors duration-200`}>
+                Vitamins & Minerals (Optional)
+              </summary>
+              <div className="grid grid-cols-3 gap-4 mt-3">
+                {[
+                  { label: 'Vitamin B6 (mg)', name: 'vitamin_b6' },
+                  { label: 'Folate (mcg)', name: 'folate' },
+                  { label: 'Vitamin B12 (mcg)', name: 'vitamin_b12' },
+                  { label: 'Vitamin C (mg)', name: 'vitamin_c' },
+                  { label: 'Vitamin K (mcg)', name: 'vitamin_k' },
+                  { label: 'Vitamin E (mg)', name: 'vitamin_e' },
+                  { label: 'Vitamin A (IU)', name: 'vitamin_a' },
+                  { label: 'Sodium (mg)', name: 'sodium' },
+                  { label: 'Zinc (mg)', name: 'zinc' },
+                  { label: 'Iron (mg)', name: 'iron' },
+                  { label: 'Phosphorus (mg)', name: 'phosphorus' },
+                  { label: 'Magnesium (mg)', name: 'magnesium' },
+                  { label: 'Potassium (mg)', name: 'potassium' },
+                  { label: 'Calcium (mg)', name: 'calcium' },
+                ].map((field) => (
+                  <div key={field.name}>
+                    <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2 text-sm`}>{field.label}</label>
+                    <input
+                      type="number"
+                      name={field.name}
+                      value={formData[field.name]}
+                      onChange={handleInputChange}
+                      className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none text-sm transition-colors duration-200`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </details>
+          </div>
+
           {/* Dietary Information */}
-          <div className="grid grid-cols-2 gap-4">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="glutenFree"
-                checked={formData.glutenFree}
-                onChange={handleCheckboxChange}
-              />
-              <span className="text-gray-300">Gluten-Free</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="vegetarian"
-                checked={formData.vegetarian}
-                onChange={handleCheckboxChange}
-              />
-              <span className="text-gray-300">Vegetarian</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="vegan"
-                checked={formData.vegan}
-                onChange={handleCheckboxChange}
-              />
-              <span className="text-gray-300">Vegan</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="dairyFree"
-                checked={formData.dairyFree}
-                onChange={handleCheckboxChange}
-              />
-              <span className="text-gray-300">Dairy-Free</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="lowFodmap"
-                checked={formData.lowFodmap}
-                onChange={handleCheckboxChange}
-              />
-              <span className="text-gray-300">Low FODMAP</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="sustainable"
-                checked={formData.sustainable}
-                onChange={handleCheckboxChange}
-              />
-              <span className="text-gray-300">Sustainable</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="veryHealthy"
-                checked={formData.veryHealthy}
-                onChange={handleCheckboxChange}
-              />
-              <span className="text-gray-300">Very Healthy</span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="budgetFriendly"
-                checked={formData.budgetFriendly}
-                onChange={handleCheckboxChange}
-              />
-              <span className="text-gray-300">Budget Friendly</span>
-            </label>
+          <div>
+            <h3 className={`text-lg font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-3`}>Dietary Information</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { label: 'Gluten-Free', name: 'glutenFree' },
+                { label: 'Vegetarian', name: 'vegetarian' },
+                { label: 'Vegan', name: 'vegan' },
+                { label: 'Dairy-Free', name: 'dairyFree' },
+                { label: 'Low FODMAP', name: 'lowFodmap' },
+                { label: 'Sustainable', name: 'sustainable' },
+                { label: 'Very Healthy', name: 'veryHealthy' },
+                { label: 'Budget Friendly', name: 'budgetFriendly' },
+              ].map((field) => (
+                <label
+                  key={field.name}
+                  className={`flex items-center space-x-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} hover:bg-opacity-50 p-2 rounded transition-colors duration-200`}
+                >
+                  <input
+                    type="checkbox"
+                    name={field.name}
+                    checked={formData[field.name]}
+                    onChange={handleCheckboxChange}
+                    className="w-5 h-5 accent-blue-500"
+                  />
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{field.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Image Upload */}
           <div>
-            <label className="block text-gray-300 mb-2">Image</label>
-            <input
-              type="file"
-              name="image"
-              onChange={handleImageChange}
-              className="w-full p-2 rounded bg-gray-700 text-white"
-              accept="image/*"
-            />
+            <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Image</label>
+            <div className="flex items-center justify-center w-full">
+              <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer ${darkMode ? 'border-gray-600 hover:border-blue-400' : 'border-gray-300 hover:border-[#007BFF]'} ${darkMode ? 'bg-gray-700 bg-opacity-30 hover:bg-opacity-50' : 'bg-gray-100 hover:bg-gray-200'} transition-all duration-200`}>
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <svg
+                    className="w-8 h-8 mb-4 text-gray-400"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 20 16"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                    />
+                  </svg>
+                  <p className="mb-2 text-sm text-gray-400">
+                    <span className="font-semibold">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-400">PNG, JPG, GIF (MAX. 5MB)</p>
+                </div>
+                <input
+                  id="dropzone-file"
+                  type="file"
+                  className="hidden"
+                  name="image"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                />
+              </label>
+            </div>
+            {formData.image && (
+              <p className={`mt-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>Selected file: {formData.image.name}</p>
+            )}
           </div>
 
           {/* Error Message */}
-          {error && <p className="text-red-500">{error}</p>}
+          {error && (
+            <div className={`${darkMode ? 'bg-red-900' : 'bg-red-100'} bg-opacity-70 ${darkMode ? 'text-white' : 'text-red-700'} p-3 rounded`}>
+              <p>{error}</p>
+            </div>
+          )}
 
           {/* Submit and Cancel Buttons */}
-          <div className="flex gap-4">
+          <div className="flex gap-4 pt-2">
             <button
               type="submit"
-              className="bg-yellow-500 text-gray-900 px-4 py-2 rounded hover:bg-yellow-400"
+              className={`bg-[#007BFF] text-white px-6 py-2 rounded-lg hover:bg-blue-600 font-medium transition-colors duration-200 flex-1`}
             >
               Submit Recipe
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500"
+              className={`${darkMode ? 'bg-gray-700' : 'bg-gray-200'} ${darkMode ? 'text-white' : 'text-gray-700'} px-6 py-2 rounded-lg ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-300'} transition-colors duration-200 border ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}
             >
               Cancel
             </button>
