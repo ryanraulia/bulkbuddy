@@ -9,7 +9,7 @@ export default function Home() {
   const [exclude, setExclude] = useState('');
   const [timeFrame, setTimeFrame] = useState('day');
   const navigate = useNavigate();
-  const { darkMode } = useTheme(); // Use darkMode from context
+  const { darkMode } = useTheme();
 
   const dietaryOptions = [
     { value: "", label: "Select Dietary Preference (Optional)" },
@@ -58,7 +58,7 @@ export default function Home() {
   };
 
   return (
-    <main className={`flex flex-col items-center justify-center min-h-screen ${darkMode ? 'bg-[#1E1E1E] text-[#E0E0E0]' : 'bg-[#FAFAFA] text-[#212529]'} py-16 px-4`}>
+    <main className={`flex flex-col items-center justify-center min-h-screen ${darkMode ? 'bg-[#1F1F2E] text-[#E0E0E0]' : 'bg-[#FAFAFA] text-[#212529]'} py-16 px-4`}>
       {/* Hero Section */}
       <section className="text-center max-w-4xl mx-auto mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
@@ -71,7 +71,7 @@ export default function Home() {
 
       {/* Main Card */}
       <section className="w-full max-w-2xl mx-auto" aria-labelledby="meal-plan-heading">
-        <div className={`${darkMode ? 'bg-[#2D2D2D] border-gray-700' : 'bg-white border-gray-200'} rounded-lg shadow-xl border overflow-hidden`}>
+        <div className={`${darkMode ? 'bg-[#2E2E2E] border-gray-700' : 'bg-white border-gray-200'} rounded-lg shadow-xl border overflow-hidden`}>
           {/* Card Header */}
           <div className="bg-gradient-to-r from-[#007BFF] to-[#0056b3] p-6 flex items-center justify-between">
             <h2 id="meal-plan-heading" className="text-2xl font-bold text-white flex items-center">
@@ -102,7 +102,7 @@ export default function Home() {
                     placeholder="Enter target calories (e.g., 2500)"
                     value={targetCalories}
                     onChange={(e) => setTargetCalories(e.target.value)}
-                    className={`w-full p-3 ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0] border-gray-700' : 'bg-white text-[#212529] border-gray-300'} border rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition`}
+                    className={`w-full p-3 ${darkMode ? 'bg-[#1E1E1E] text-[#FFFFFF] border-gray-700' : 'bg-white text-[#212529] border-gray-300'} border rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition`}
                     required
                     aria-required="true"
                     min="1000"
@@ -124,7 +124,7 @@ export default function Home() {
                   id="time-frame"
                   value={timeFrame}
                   onChange={(e) => setTimeFrame(e.target.value)}
-                  className={`w-full p-3 ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0] border-gray-700' : 'bg-white text-[#212529] border-gray-300'} border rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition`}
+                  className={`w-full p-3 ${darkMode ? 'bg-[#1E1E1E] text-[#FFFFFF] border-gray-700' : 'bg-white text-[#212529] border-gray-300'} border rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition`}
                   required
                 >
                   <option value="day">Single Day</option>
@@ -141,7 +141,7 @@ export default function Home() {
                   id="diet-select"
                   value={diet}
                   onChange={(e) => setDiet(e.target.value)}
-                  className={`w-full p-3 ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0] border-gray-700' : 'bg-white text-[#212529] border-gray-300'} border rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition`}
+                  className={`w-full p-3 ${darkMode ? 'bg-[#1E1E1E] text-[#FFFFFF] border-gray-700' : 'bg-white text-[#212529] border-gray-300'} border rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition`}
                   aria-label="Select your dietary preference"
                 >
                   {dietaryOptions.map(option => (
@@ -163,7 +163,7 @@ export default function Home() {
                   placeholder="e.g., nuts, dairy, gluten"
                   value={exclude}
                   onChange={(e) => setExclude(e.target.value)}
-                  className={`w-full p-3 ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0] border-gray-700' : 'bg-white text-[#212529] border-gray-300'} border rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition`}
+                  className={`w-full p-3 ${darkMode ? 'bg-[#1E1E1E] text-[#FFFFFF] border-gray-700' : 'bg-white text-[#212529] border-gray-300'} border rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-[#007BFF] transition`}
                 />
                 <p className={`mt-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Enter ingredients you want to avoid</p>
               </div>
@@ -204,9 +204,9 @@ export default function Home() {
               icon: "🍽️"
             }
           ].map((benefit, index) => (
-            <div key={index} className={`${darkMode ? 'bg-[#2D2D2D] border-gray-700' : 'bg-white border-gray-200'} rounded-lg p-6 border hover:border-[#007BFF] transition-colors duration-300`}>
+            <div key={index} className={`${darkMode ? 'bg-[#1E1E1E] border-gray-700' : 'bg-white border-gray-200'} rounded-lg p-6 border hover:border-[#007BFF] transition-colors duration-300`}>
               <div className="text-3xl mb-4">{benefit.icon}</div>
-              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-gray-300' : 'text-[#212529]'}`}>{benefit.title}</h3>
+              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-[#FFFFFF]' : 'text-[#212529]'}`}>{benefit.title}</h3>
               <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{benefit.description}</p>
             </div>
           ))}

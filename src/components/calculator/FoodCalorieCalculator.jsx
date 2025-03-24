@@ -197,31 +197,13 @@ const FoodCalorieCalculator = () => {
 
       {/* Results Area */}
       <div className="p-6">
-        {/* Search Results Summary */}
+        {/* Search Results Summary - Removed the macros summary bar */}
         {results.length > 0 && (
           <div className={`mb-6 p-4 rounded-lg transition-all duration-200 ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
             <h3 className={`font-semibold mb-3 flex items-center gap-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
               <Search size={18} />
               Search Results ({results.length})
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
-                <div className="text-xs uppercase opacity-60">Calories</div>
-                <div className="text-xl font-bold">{searchResultsTotal.calories.toFixed(0)}</div>
-              </div>
-              <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
-                <div className="text-xs uppercase opacity-60">Protein</div>
-                <div className="text-xl font-bold">{searchResultsTotal.protein.toFixed(1)}g</div>
-              </div>
-              <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
-                <div className="text-xs uppercase opacity-60">Carbs</div>
-                <div className="text-xl font-bold">{searchResultsTotal.carbs.toFixed(1)}g</div>
-              </div>
-              <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
-                <div className="text-xs uppercase opacity-60">Fat</div>
-                <div className="text-xl font-bold">{searchResultsTotal.fat.toFixed(1)}g</div>
-              </div>
-            </div>
           </div>
         )}
 
