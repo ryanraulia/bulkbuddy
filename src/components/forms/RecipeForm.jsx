@@ -133,7 +133,29 @@ const RecipeForm = ({ onClose }) => {
               className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200`}
               placeholder="Enter recipe title"
             />
-          </div>
+                    </div>
+                    <label>
+            Servings:
+            <input 
+              type="number" 
+              value={formData.servings} 
+              onChange={(e) => setFormData({...formData, servings: e.target.value})}
+              min="1"
+              required
+            />
+          </label>
+
+          <label>
+            Health Score (0-100):
+            <input
+              type="number"
+              value={formData.healthScore}
+              onChange={(e) => setFormData({...formData, healthScore: e.target.value})}
+              min="0"
+              max="100"
+              required
+            />
+          </label>
 
           {/* Ingredients */}
           <div>

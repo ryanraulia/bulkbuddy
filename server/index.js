@@ -181,6 +181,7 @@ app.get('/api/recipes/search', async (req, res) => {
           number: 8,
           addRecipeInformation: true,
           instructionsRequired: true,
+          addRecipeNutrition: true
         };
 
         // Add allowed filters
@@ -202,7 +203,9 @@ app.get('/api/recipes/search', async (req, res) => {
         
         combinedResults.push(...spoonacularResponse.data.results.map(r => ({
           ...r,
-          source: 'spoonacular'
+          source: 'spoonacular',
+          healthScore: r.healthScore // Add this line to preserve Spoonacular's health score
+          
         })));
       }
     }
@@ -255,7 +258,7 @@ app.get('/api/recipes/search', async (req, res) => {
 
       const [userRecipes] = await db.promise().query(
         `SELECT recipes.id AS recipe_id, recipes.title, recipes.image, 
-         recipes.calories, recipes.protein, recipes.fat, recipes.carbs, 
+         recipes.calories, recipes.protein, recipes.fat, recipes.carbs,recipes.servings, recipes.health_score, 
          recipes.ingredients, recipes.created_at, users.name AS username
          FROM recipes 
          JOIN users ON recipes.user_id = users.id
@@ -976,6 +979,8 @@ app.post('/api/recipes/submit', recipeUpload.single('image'), async (req, res) =
       magnesium: parseFloat(req.body.magnesium),
       potassium: parseFloat(req.body.potassium),
       calcium: parseFloat(req.body.calcium),
+      servings: parseInt(req.body.servings) || 1,
+      health_score: parseInt(req.body.healthScore) || 0,
       gluten_free: req.body.glutenFree ? req.body.glutenFree === 'true' : false,
       vegetarian: req.body.vegetarian ? req.body.vegetarian === 'true' : false,
       vegan: req.body.vegan ? req.body.vegan === 'true' : false,
