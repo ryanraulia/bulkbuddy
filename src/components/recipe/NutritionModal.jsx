@@ -45,8 +45,9 @@ const NutritionModal = ({ recipe, onClose }) => {
   };
   
   // Calculate health score
-  const healthScore = recipe.very_healthy ? 95 : recipe.budget_friendly ? 85 : 75;
-  
+  const healthScore = recipe.healthScore !== undefined ? 
+  recipe.healthScore : 
+  (recipe.very_healthy ? 95 : recipe.budget_friendly ? 85 : 75);  
   // Update getDietaryTags function
   const getDietaryTags = () => {
     const tags = [];
