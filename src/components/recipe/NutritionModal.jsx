@@ -43,11 +43,12 @@ const NutritionModal = ({ recipe, onClose }) => {
     if (score >= 40) return darkMode ? 'text-yellow-300' : 'text-yellow-500';
     return darkMode ? 'text-red-400' : 'text-red-500';
   };
-  
-  // Calculate health score
-  const healthScore = recipe.healthScore !== undefined ? 
-  recipe.healthScore : 
-  (recipe.very_healthy ? 95 : recipe.budget_friendly ? 85 : 75);  
+// Update the health score calculation to use Spoonacular's healthScore when available
+const healthScore = recipe.source === 'spoonacular' 
+  ? recipe.healthScore  // Use Spoonacular's healthScore directly
+  : recipe.health_score !== undefined 
+    ? recipe.health_score 
+    : (recipe.very_healthy ? 95 : recipe.budget_friendly ? 85 : 75);
   // Update getDietaryTags function
   const getDietaryTags = () => {
     const tags = [];

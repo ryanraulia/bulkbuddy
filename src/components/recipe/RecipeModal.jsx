@@ -78,10 +78,18 @@ const RecipeModal = ({ recipeId, onClose }) => {
             <span>{new Date(recipe.createdAt).toLocaleDateString()}</span>
           </div>
         )}
-        {recipe.healthScore && (
+    
+        {recipe.healthScore && recipe.source === 'spoonacular' && (
           <div className="flex items-center bg-amber-900 bg-opacity-70 px-3 py-1 rounded-full">
             <Star size={16} className="mr-1 text-amber-300" />
             <span>Health score: {recipe.healthScore}</span>
+          </div>
+        )}
+
+        {recipe.health_score && recipe.source === 'user' && (
+          <div className="flex items-center bg-amber-900 bg-opacity-70 px-3 py-1 rounded-full">
+            <Star size={16} className="mr-1 text-amber-300" />
+            <span>Health score: {recipe.health_score}</span>
           </div>
         )}
         {recipe.vegetarian && (
