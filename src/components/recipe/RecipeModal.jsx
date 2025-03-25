@@ -214,9 +214,8 @@ const RecipeModal = ({ recipeId, onClose }) => {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-gray-700 mt-auto bg-gray-800/50">
-              {recipe.source !== 'user' && (
+              {/* Footer */}
+              <div className="p-4 border-t border-gray-700 mt-auto bg-gray-800/50">
                 <button
                   onClick={() => setShowMealPlanForm(true)}
                   className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg hover:from-orange-400 hover:to-amber-400 transition-all font-medium flex items-center justify-center shadow-lg mb-3"
@@ -224,10 +223,9 @@ const RecipeModal = ({ recipeId, onClose }) => {
                   <Utensils size={18} className="mr-2" />
                   Add to Meal Plan
                 </button>
-              )}
 
-              {showMealPlanForm && (
-                <div className="bg-gray-800/70 p-4 rounded-lg mb-4">
+                {showMealPlanForm && (
+                  <div className="bg-gray-800/70 p-4 rounded-lg mb-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-lg font-medium text-white">Plan This Meal</h3>
                     <button 
