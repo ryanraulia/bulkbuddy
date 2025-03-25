@@ -37,6 +37,15 @@ const RecipeForm = ({ onClose }) => {
     sustainable: false,
     veryHealthy: false,
     budgetFriendly: false,
+    dietType: 'all',
+    cuisine: '',
+    mealType: '',
+    maxPrepTime: '',
+    eggFree: false,
+    peanutFree: false,
+    soyFree: false,
+    treeNutFree: false,
+    shellfishFree: false,
     image: null,
   });
   const [error, setError] = useState('');
@@ -238,6 +247,78 @@ const RecipeForm = ({ onClose }) => {
             </div>
           </div>
 
+          {/* Diet Type, Cuisine, and Meal Type */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Diet Type</label>
+              <select
+                name="dietType"
+                value={formData.dietType}
+                onChange={handleInputChange}
+                className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200`}
+              >
+                <option value="all">All</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="ketogenic">Ketogenic</option>
+                <option value="pescetarian">Pescetarian</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Cuisine</label>
+              <select
+                name="cuisine"
+                value={formData.cuisine}
+                onChange={handleInputChange}
+                className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200`}
+              >
+                <option value="">Select Cuisine</option>
+                <option value="Italian">Italian</option>
+                <option value="Mexican">Mexican</option>
+                <option value="Asian">Asian</option>
+                <option value="Mediterranean">Mediterranean</option>
+                <option value="American">American</option>
+                <option value="Indian">Indian</option>
+                <option value="French">French</option>
+                <option value="Greek">Greek</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Meal Type</label>
+              <select
+                name="mealType"
+                value={formData.mealType}
+                onChange={handleInputChange}
+                className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200`}
+              >
+                <option value="">Select Meal Type</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="main course">Main Course</option>
+                <option value="side dish">Side Dish</option>
+                <option value="appetizer">Appetizer</option>
+                <option value="salad">Salad</option>
+                <option value="soup">Soup</option>
+                <option value="dessert">Dessert</option>
+                <option value="beverage">Beverage</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Max Prep Time */}
+          <div>
+            <label className={`block ${darkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Max Prep Time (minutes)</label>
+            <input
+              type="number"
+              name="maxPrepTime"
+              value={formData.maxPrepTime}
+              onChange={handleInputChange}
+              className={`w-full p-2 rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} border ${darkMode ? 'border-gray-600' : 'border-gray-300'} focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200`}
+              placeholder="Enter maximum preparation time"
+            />
+          </div>
+
           {/* Vitamins and Minerals - Collapsible Section */}
           <div className={`border ${darkMode ? 'border-gray-700' : 'border-gray-300'} rounded-lg p-4 ${darkMode ? 'bg-gray-800/50' : 'bg-gray-100'}`}>
             <details>
@@ -289,6 +370,11 @@ const RecipeForm = ({ onClose }) => {
                 { label: 'Sustainable', name: 'sustainable' },
                 { label: 'Very Healthy', name: 'veryHealthy' },
                 { label: 'Budget Friendly', name: 'budgetFriendly' },
+                { label: 'Egg-Free', name: 'eggFree' },
+                { label: 'Peanut-Free', name: 'peanutFree' },
+                { label: 'Soy-Free', name: 'soyFree' },
+                { label: 'Tree Nut-Free', name: 'treeNutFree' },
+                { label: 'Shellfish-Free', name: 'shellfishFree' },
               ].map((field) => (
                 <label
                   key={field.name}

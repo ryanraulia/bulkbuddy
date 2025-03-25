@@ -63,6 +63,7 @@ export default function Recipes() {
       ...Object.fromEntries(
         Object.entries(filters)
           .filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+          .map(([k, v]) => [k, Array.isArray(v) ? v.join(',') : v])
       )
     });
     navigate(`/search?${params.toString()}`);
@@ -198,277 +199,282 @@ export default function Recipes() {
       </div>
 
       {showFilters && (
-  <div className={`${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-800'} max-w-7xl mx-auto px-6 py-6 rounded-xl shadow-lg mb-8 transition-all duration-300 transform`}>
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-xl font-semibold flex items-center gap-2">
-        <Filter size={18} />
-        Advanced Filters
-      </h3>
-      <div className="flex gap-3">
-        <button
-          onClick={clearFilters}
-          className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-2 rounded-lg text-sm flex items-center gap-1 transition-colors`}
-        >
-          <X size={14} />
-          Clear All
-        </button>
-        <button
-          onClick={() => setShowFilters(false)}
-          className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} p-2 rounded-lg flex items-center transition-colors`}
-        >
-          <X size={16} />
-        </button>
-      </div>
-    </div>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div>
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Diet Type
-        </label>
-        <select
-          value={filters.diet}
-          onChange={(e) => setFilters({...filters, diet: e.target.value})}
-          className={`w-full px-4 py-3 rounded-lg border ${
-            darkMode 
-              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-              : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
-          } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
-        >
-          <option value="">All Diets</option>
-          <option value="vegetarian">Vegetarian</option>
-          <option value="vegan">Vegan</option>
-          <option value="glutenFree">Gluten Free</option>
-          <option value="ketogenic">Ketogenic</option>
-          <option value="pescetarian">Pescetarian</option>
-        </select>
-      </div>
-      
-      <div>
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Cuisine
-        </label>
-        <select
-          value={filters.cuisine}
-          onChange={(e) => setFilters({...filters, cuisine: e.target.value})}
-          className={`w-full px-4 py-3 rounded-lg border ${
-            darkMode 
-              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-              : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
-          } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
-        >
-          <option value="">All Cuisines</option>
-          <option value="Italian">Italian</option>
-          <option value="Mexican">Mexican</option>
-          <option value="Asian">Asian</option>
-          <option value="Mediterranean">Mediterranean</option>
-          <option value="American">American</option>
-          <option value="Indian">Indian</option>
-          <option value="French">French</option>
-          <option value="Greek">Greek</option>
-        </select>
-      </div>
-      
-      <div>
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Max Prep Time
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Clock size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-          </div>
-          <input
-            type="number"
-            placeholder="Minutes"
-            value={filters.maxReadyTime}
-            onChange={(e) => setFilters({...filters, maxReadyTime: e.target.value})}
-            className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-              darkMode 
-                ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-                : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
-            } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
-          />
-        </div>
-      </div>
-      
-      <div>
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Dietary Restrictions
-        </label>
-        <select
-          multiple
-          value={filters.intolerances}
-          onChange={(e) => setFilters({...filters, intolerances: [...e.target.selectedOptions].map(o => o.value)})}
-          className={`w-full px-4 py-3 rounded-lg border ${
-            darkMode 
-              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-              : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
-          } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
-          size="3"
-        >
-          <option value="dairy">Dairy Free</option>
-          <option value="egg">Egg Free</option>
-          <option value="gluten">Gluten Free</option>
-          <option value="peanut">Peanut Free</option>
-          <option value="soy">Soy Free</option>
-          <option value="treeNut">Tree Nut Free</option>
-          <option value="shellfish">Shellfish Free</option>
-        </select>
-      </div>
-      
-      <div>
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Calories Range
-        </label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Flame size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-            </div>
-            <input
-              type="number"
-              placeholder="Min"
-              value={filters.minCalories}
-              onChange={(e) => setFilters({...filters, minCalories: e.target.value})}
-              className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-                  : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
-              } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
-            />
-          </div>
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Flame size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
-            </div>
-            <input
-              type="number"
-              placeholder="Max"
-              value={filters.maxCalories}
-              onChange={(e) => setFilters({...filters, maxCalories: e.target.value})}
-              className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-                  : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
-              } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
-            />
-          </div>
-        </div>
-      </div>
-      
-      <div>
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Meal Type
-        </label>
-        <select
-          value={filters.type}
-          onChange={(e) => setFilters({...filters, type: e.target.value})}
-          className={`w-full px-4 py-3 rounded-lg border ${
-            darkMode 
-              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
-              : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
-          } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
-        >
-          <option value="">All Types</option>
-          <option value="breakfast">Breakfast</option>
-          <option value="main course">Main Course</option>
-          <option value="side dish">Side Dish</option>
-          <option value="appetizer">Appetizer</option>
-          <option value="salad">Salad</option>
-          <option value="soup">Soup</option>
-          <option value="dessert">Dessert</option>
-          <option value="beverage">Beverage</option>
-        </select>
-      </div>
-
-      {/* Macronutrient Filter Section */}
-      <div className="col-span-3">
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          Macronutrients
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          {/* Protein */}
-          <div className="col-span-2">
-            <p className="text-xs text-gray-500 mb-1">Protein (g)</p>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.minProtein}
-                onChange={(e) => setFilters({...filters, minProtein: e.target.value})}
-                className={`w-full px-3 py-2 rounded-lg border ${
-                  darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.maxProtein}
-                onChange={(e) => setFilters({...filters, maxProtein: e.target.value})}
-                className={`w-full px-3 py-2 rounded-lg border ${
-                  darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
+        <div className={`${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-800'} max-w-7xl mx-auto px-6 py-6 rounded-xl shadow-lg mb-8 transition-all duration-300 transform`}>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+              <Filter size={18} />
+              Advanced Filters
+            </h3>
+            <div className="flex gap-3">
+              <button
+                onClick={clearFilters}
+                className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-2 rounded-lg text-sm flex items-center gap-1 transition-colors`}
+              >
+                <X size={14} />
+                Clear All
+              </button>
+              <button
+                onClick={() => setShowFilters(false)}
+                className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} p-2 rounded-lg flex items-center transition-colors`}
+              >
+                <X size={16} />
+              </button>
             </div>
           </div>
           
-          {/* Carbs */}
-          <div className="col-span-2">
-            <p className="text-xs text-gray-500 mb-1">Carbs (g)</p>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.minCarbs}
-                onChange={(e) => setFilters({...filters, minCarbs: e.target.value})}
-                className={`w-full px-3 py-2 rounded-lg border ${
-                  darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.maxCarbs}
-                onChange={(e) => setFilters({...filters, maxCarbs: e.target.value})}
-                className={`w-full px-3 py-2 rounded-lg border ${
-                  darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Diet Type Filter */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Diet Type
+              </label>
+              <select
+                value={filters.diet}
+                onChange={(e) => setFilters({...filters, diet: e.target.value})}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
+                    : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
+                } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
+              >
+                <option value="">All Diets</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="glutenFree">Gluten Free</option>
+                <option value="dairyFree">Dairy Free</option>
+                <option value="lowFodmap">Low FODMAP</option>
+              </select>
             </div>
-          </div>
+            
+            {/* Cuisine Filter */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Cuisine
+              </label>
+              <select
+                value={filters.cuisine}
+                onChange={(e) => setFilters({...filters, cuisine: e.target.value})}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
+                    : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
+                } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
+              >
+                <option value="">All Cuisines</option>
+                <option value="Italian">Italian</option>
+                <option value="Mexican">Mexican</option>
+                <option value="Asian">Asian</option>
+                <option value="Mediterranean">Mediterranean</option>
+                <option value="American">American</option>
+                <option value="Indian">Indian</option>
+                <option value="French">French</option>
+                <option value="Greek">Greek</option>
+              </select>
+            </div>
+            
+            {/* Max Prep Time */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Max Prep Time
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Clock size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
+                </div>
+                <input
+                  type="number"
+                  placeholder="Minutes"
+                  value={filters.maxReadyTime}
+                  onChange={(e) => setFilters({...filters, maxReadyTime: e.target.value})}
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
+                      : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
+                  } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
+                />
+              </div>
+            </div>
+            
+            {/* Intolerances Filter */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Dietary Restrictions
+              </label>
+              <select
+                multiple
+                value={filters.intolerances}
+                onChange={(e) => setFilters({...filters, intolerances: [...e.target.selectedOptions].map(o => o.value)})}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
+                    : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
+                } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
+                size="3"
+              >
+                <option value="dairy">Dairy Free</option>
+                <option value="gluten">Gluten Free</option>
+                <option value="peanut">Peanut Free</option>
+                <option value="soy">Soy Free</option>
+                <option value="treeNut">Tree Nut Free</option>
+                <option value="shellfish">Shellfish Free</option>
+              </select>
+            </div>
+            
+            {/* Calories Range */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Calories Range
+              </label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Flame size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
+                  </div>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={filters.minCalories}
+                    onChange={(e) => setFilters({...filters, minCalories: e.target.value})}
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
+                        : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
+                    } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Flame size={16} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
+                  </div>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={filters.maxCalories}
+                    onChange={(e) => setFilters({...filters, maxCalories: e.target.value})}
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
+                        : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
+                    } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Meal Type */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Meal Type
+              </label>
+              <select
+                value={filters.type}
+                onChange={(e) => setFilters({...filters, type: e.target.value})}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500' 
+                    : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500'
+                } focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors`}
+              >
+                <option value="">All Types</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="main course">Main Course</option>
+                <option value="side dish">Side Dish</option>
+                <option value="appetizer">Appetizer</option>
+                <option value="salad">Salad</option>
+                <option value="soup">Soup</option>
+                <option value="dessert">Dessert</option>
+                <option value="beverage">Beverage</option>
+              </select>
+            </div>
 
-          {/* Fat */}
-          <div className="col-span-2">
-            <p className="text-xs text-gray-500 mb-1">Fat (g)</p>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters.minFat}
-                onChange={(e) => setFilters({...filters, minFat: e.target.value})}
-                className={`w-full px-3 py-2 rounded-lg border ${
-                  darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters.maxFat}
-                onChange={(e) => setFilters({...filters, maxFat: e.target.value})}
-                className={`w-full px-3 py-2 rounded-lg border ${
-                  darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
-                }`}
-              />
+            {/* Macronutrient Filters */}
+            <div className="col-span-3">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Macronutrients
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {/* Protein */}
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-500 mb-1">Protein (g)</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minProtein}
+                      onChange={(e) => setFilters({...filters, minProtein: e.target.value})}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                      }`}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxProtein}
+                      onChange={(e) => setFilters({...filters, maxProtein: e.target.value})}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                      }`}
+                    />
+                  </div>
+                </div>
+                
+                {/* Carbs */}
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-500 mb-1">Carbs (g)</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minCarbs}
+                      onChange={(e) => setFilters({...filters, minCarbs: e.target.value})}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                      }`}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxCarbs}
+                      onChange={(e) => setFilters({...filters, maxCarbs: e.target.value})}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {/* Fat */}
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-500 mb-1">Fat (g)</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minFat}
+                      onChange={(e) => setFilters({...filters, minFat: e.target.value})}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                      }`}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxFat}
+                      onChange={(e) => setFilters({...filters, maxFat: e.target.value})}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       <div className="max-w-7xl mx-auto px-4 pb-16">
-        {/* Action Buttons with animation */}
+        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <div className="flex space-x-2 w-full sm:w-auto">
             <button 
@@ -506,7 +512,7 @@ export default function Recipes() {
           )}
         </div>
 
-        {/* Category Pills with scroll animation */}
+        {/* Category Pills */}
         <div className="mb-8 overflow-x-auto pb-2 no-scrollbar">
           <div className="flex space-x-2 whitespace-nowrap">
             <button
@@ -538,7 +544,7 @@ export default function Recipes() {
           </div>
         </div>
 
-        {/* Loading State with improved animation */}
+        {/* Loading State */}
         {loading && (
           <div className="flex flex-col justify-center items-center py-32">
             <div className="relative">
@@ -549,7 +555,7 @@ export default function Recipes() {
           </div>
         )}
 
-        {/* Recipe Section with improved card grid */}
+        {/* Recipe Section */}
         {!loading && (
           <>
             <div className="flex items-center justify-between mb-6">

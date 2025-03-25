@@ -151,6 +151,25 @@ app.get('/api/recipes/search', async (req, res) => {
       'minProtein', 'maxProtein', 'minCarbs', 'maxCarbs', 'minFat', 'maxFat'
     ];
 
+    // Mapping for user recipe filters (camelCase to snake_case)
+    const mapFilterToColumn = {
+      diet: {
+        vegetarian: 'vegetarian',
+        vegan: 'vegan',
+        glutenFree: 'gluten_free',
+        dairyFree: 'dairy_free',
+        lowFodmap: 'low_fodmap'
+      },
+      intolerances: {
+        dairy: 'dairy_free',
+        gluten: 'gluten_free',
+        peanut: 'peanut_free',
+        soy: 'soy_free',
+        treeNut: 'tree_nut_free',
+        shellfish: 'shellfish_free'
+      }
+    };
+
     // Check if we should call Spoonacular (either has query or filters)
     const hasFilters = allowedFilters.some(param => filters[param]);
     const isEmptySearch = !query && !hasFilters;
@@ -205,7 +224,6 @@ app.get('/api/recipes/search', async (req, res) => {
           ...r,
           source: 'spoonacular',
           healthScore: r.healthScore // Add this line to preserve Spoonacular's health score
-          
         })));
       }
     }
@@ -215,9 +233,37 @@ app.get('/api/recipes/search', async (req, res) => {
       const userConditions = [];
       const userParams = [];
 
+      // Text search
       if (query) {
         userConditions.push('LOWER(recipes.title) LIKE LOWER(?)');
         userParams.push(`%${query}%`);
+      }
+
+      // Diet filters
+      if (filters.diet && mapFilterToColumn.diet[filters.diet]) {
+        userConditions.push(`${mapFilterToColumn.diet[filters.diet]} = 1`);
+      }
+
+      // Intolerances
+      if (filters.intolerances) {
+        // Handle both string (single intolerance) and array (multiple intolerances)
+        const intolerances = Array.isArray(filters.intolerances) 
+          ? filters.intolerances 
+          : [filters.intolerances];
+        
+        const intoleranceConditions = intolerances
+          .filter(intolerance => mapFilterToColumn.intolerances[intolerance])
+          .map(intolerance => `${mapFilterToColumn.intolerances[intolerance]} = 1`);
+        
+        if (intoleranceConditions.length > 0) {
+          userConditions.push(`(${intoleranceConditions.join(' AND ')})`);
+        }
+      }
+
+      // Meal type
+      if (filters.type) {
+        userConditions.push('recipes.meal_type = ?');
+        userParams.push(filters.type);
       }
 
       // Add numeric filters for user recipes
@@ -258,8 +304,12 @@ app.get('/api/recipes/search', async (req, res) => {
 
       const [userRecipes] = await db.promise().query(
         `SELECT recipes.id AS recipe_id, recipes.title, recipes.image, 
-         recipes.calories, recipes.protein, recipes.fat, recipes.carbs,recipes.servings, recipes.health_score, 
-         recipes.ingredients, recipes.created_at, users.name AS username
+         recipes.calories, recipes.protein, recipes.fat, recipes.carbs,
+         recipes.servings, recipes.health_score, recipes.gluten_free,
+         recipes.vegetarian, recipes.vegan, recipes.dairy_free,
+         recipes.low_fodmap, recipes.sustainable, recipes.very_healthy,
+         recipes.budget_friendly, recipes.ingredients, recipes.created_at, 
+         users.name AS username
          FROM recipes 
          JOIN users ON recipes.user_id = users.id
          WHERE recipes.source = 'user' 
@@ -611,8 +661,17 @@ app.get('/api/recipe/:id', async (req, res) => {
       }
     );
 
+
+
     const response = {
       ...recipeInfo.data,
+      gluten_free: recipeInfo.data.glutenFree,
+      dairy_free: recipeInfo.data.dairyFree,
+      vegetarian: recipeInfo.data.vegetarian,
+      vegan: recipeInfo.data.vegan,
+      low_fodmap: recipeInfo.data.lowFodmap,
+      sustainable: recipeInfo.data.sustainable,
+      very_healthy: recipeInfo.data.veryHealthy,
       calories: recipeInfo.data.nutrition?.nutrients.find(n => n.name === 'Calories')?.amount || 0
     };
     
@@ -981,6 +1040,15 @@ app.post('/api/recipes/submit', recipeUpload.single('image'), async (req, res) =
       calcium: parseFloat(req.body.calcium),
       servings: parseInt(req.body.servings) || 1,
       health_score: parseInt(req.body.healthScore) || 0,
+      diet_type: req.body.dietType || 'all',
+      cuisine: req.body.cuisine,
+      meal_type: req.body.mealType,
+      max_prep_time: req.body.maxPrepTime ? parseInt(req.body.maxPrepTime) : null,
+      egg_free: req.body.eggFree === 'true',
+      peanut_free: req.body.peanutFree === 'true',
+      soy_free: req.body.soyFree === 'true',
+      tree_nut_free: req.body.treeNutFree === 'true',
+      shellfish_free: req.body.shellfishFree === 'true',
       gluten_free: req.body.glutenFree ? req.body.glutenFree === 'true' : false,
       vegetarian: req.body.vegetarian ? req.body.vegetarian === 'true' : false,
       vegan: req.body.vegan ? req.body.vegan === 'true' : false,
@@ -993,6 +1061,13 @@ app.post('/api/recipes/submit', recipeUpload.single('image'), async (req, res) =
       status: 'pending', // Force status to pending for moderation
       image: req.file ? `/uploads/recipes/${req.file.filename}` : null // Remove SERVER_URL prefix
     };
+
+    // Set vegetarian/vegan based on diet_type
+if (recipeData.diet_type === 'vegetarian') {
+  recipeData.vegetarian = true;
+} else if (recipeData.diet_type === 'vegan') {
+  recipeData.vegan = true;
+}
 
     // Insert recipe into the database
     const [result] = await db.promise().query(
