@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import axios from 'axios'; // Import axios for making HTTP requests
+import axios from 'axios';
 import RecipeModal from "../components/recipe/RecipeModal";
+import { Plus } from 'lucide-react';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -16,10 +17,11 @@ export default function Profile() {
   const [profilePicture, setProfilePicture] = useState(null);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [userRecipes, setUserRecipes] = useState([]); // Add state for user recipes
-  const [mealPlans, setMealPlans] = useState([]); // Add state for meal plans
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Add state for selected date
-  const [selectedMealPlanRecipe, setSelectedMealPlanRecipe] = useState(null); // Add this state
+  const [userRecipes, setUserRecipes] = useState([]);
+  const [mealPlans, setMealPlans] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedMealPlanRecipe, setSelectedMealPlanRecipe] = useState(null);
+  const [dailyNutrition, setDailyNutrition] = useState(null);
   const navigate = useNavigate();
   const { darkMode } = useTheme();
 
@@ -37,7 +39,6 @@ export default function Profile() {
             website: userData.website || ''
           });
 
-          // Fetch user's recipes
           const recipesResponse = await fetch('/api/users/recipes', { 
             credentials: 'include' 
           });
@@ -56,7 +57,6 @@ export default function Profile() {
     fetchUserAndRecipes();
   }, [navigate]);
 
-  // Add this useEffect for fetching meal plans
   useEffect(() => {
     const fetchMealPlans = async () => {
       try {
@@ -70,6 +70,25 @@ export default function Profile() {
     };
     fetchMealPlans();
   }, [selectedDate]);
+
+  useEffect(() => {
+    const fetchDailyNutrition = async () => {
+      try {
+        const response = await axios.get(`/api/meal-plans/nutrition?date=${selectedDate}`, {
+          withCredentials: true
+        });
+        setDailyNutrition(response.data);
+      } catch (error) {
+        console.error('Error fetching nutrition:', error);
+      }
+    };
+    
+    if (mealPlans.length > 0) {
+      fetchDailyNutrition();
+    } else {
+      setDailyNutrition(null);
+    }
+  }, [mealPlans, selectedDate]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -121,18 +140,18 @@ export default function Profile() {
 
   return (
     <div className={`container mx-auto px-6 py-10 max-w-4xl ${darkMode ? 'bg-[#202124] text-[#E0E0E0]' : 'bg-white text-[#212529]'}`}>
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className={`rounded-lg shadow-lg p-8 ${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'}`}>
         {isEditing ? (
           <form onSubmit={handleUpdateProfile}>
             {error && <div className="text-red-500 mb-4">{error}</div>}
             <div className="flex flex-col md:flex-row gap-8 mb-8">
               <div className="w-full md:w-1/3">
                 <label className="block mb-4">
-                  <span className="text-gray-700">Profile Picture</span>
+                  <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Profile Picture</span>
                   <input
                     type="file"
                     onChange={handleFileChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                    className={`mt-1 block w-full rounded-md ${darkMode ? 'bg-gray-700 border-gray-600' : 'border-gray-300'} shadow-sm`}
                     accept="image/*"
                   />
                 </label>
@@ -148,7 +167,7 @@ export default function Profile() {
               
               <div className="w-full md:w-2/3 space-y-4">
                 <div>
-                  <label className="block text-gray-700 mb-2">Name</label>
+                  <label className={`block mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Name</label>
                   <input
                     type="text"
                     value={formData.name}
@@ -157,7 +176,7 @@ export default function Profile() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2">Bio</label>
+                  <label className={`block mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Bio</label>
                   <textarea
                     value={formData.bio}
                     onChange={(e) => setFormData({...formData, bio: e.target.value})}
@@ -165,7 +184,7 @@ export default function Profile() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2">Location</label>
+                  <label className={`block mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Location</label>
                   <input
                     type="text"
                     value={formData.location}
@@ -174,7 +193,7 @@ export default function Profile() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2">Website</label>
+                  <label className={`block mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Website</label>
                   <input
                     type="url"
                     value={formData.website}
@@ -216,22 +235,22 @@ export default function Profile() {
             </div>
             
             <div className="w-full md:w-2/3 space-y-4">
-              <h1 className="text-4xl font-bold text-gray-900">{user.name}</h1>
-              <p className="text-gray-600">{user.email}</p>
+              <h1 className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{user.name}</h1>
+              <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>{user.email}</p>
               
               {user.bio && (
                 <div className="mt-4">
-                  <h3 className="text-xl font-semibold mb-2">About Me</h3>
-                  <p className="text-gray-700 whitespace-pre-line">{user.bio}</p>
+                  <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>About Me</h3>
+                  <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.bio}</p>
                 </div>
               )}
               
               {user.role === 'admin' && (
-                <div className="mt-4 p-4 bg-yellow-100 rounded-lg">
-                  <h3 className="text-lg font-semibold text-yellow-800">
+                <div className={`mt-4 p-4 rounded-lg ${darkMode ? 'bg-yellow-900' : 'bg-yellow-100'}`}>
+                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
                     ⚙️ Administrator Account
                   </h3>
-                  <p className="text-yellow-700 mt-2">
+                  <p className={darkMode ? 'text-yellow-200' : 'text-yellow-700'}>
                     You have full administrative privileges
                   </p>
                 </div>
@@ -240,16 +259,16 @@ export default function Profile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 {user.location && (
                   <div className="flex items-center">
-                    <svg className="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-6 h-6 mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-gray-700">{user.location}</span>
+                    <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{user.location}</span>
                   </div>
                 )}
                 {user.website && (
                   <div className="flex items-center">
-                    <svg className="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-6 h-6 mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                     </svg>
                     <a href={user.website} target="_blank" rel="noopener noreferrer" className="text-yellow-600 hover:underline">
@@ -281,18 +300,18 @@ export default function Profile() {
 
         {/* User Recipes Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Your Submitted Recipes
           </h2>
           
           {userRecipes.length === 0 ? (
-            <p className="text-gray-600">No recipes submitted yet.</p>
+            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>No recipes submitted yet.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {userRecipes.map(recipe => (
                 <div 
                   key={recipe.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden"
+                  className={`rounded-lg shadow-md overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
                 >
                   {recipe.image && (
                     <img
@@ -304,20 +323,20 @@ export default function Profile() {
                     />
                   )}
                   <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2">{recipe.title}</h3>
+                    <h3 className={`font-semibold text-lg mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{recipe.title}</h3>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
+                      <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {new Date(recipe.created_at).toLocaleDateString()}
                       </span>
                       <span className={`px-3 py-1 rounded-full text-sm ${
                         recipe.status === 'approved' 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
+                          ? darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800'
+                          : darkMode ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-800'
                       }`}>
                         {recipe.status}
                       </span>
                     </div>
-                    <div className="mt-2 text-sm text-gray-600">
+                    <div className={`mt-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                       Submitted by: {recipe.username}
                     </div>
                   </div>
@@ -329,7 +348,7 @@ export default function Profile() {
 
         {/* Meal Plan Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Your Meal Plan
           </h2>
           
@@ -342,63 +361,163 @@ export default function Profile() {
             />
           </div>
           
+    {/* Daily Nutrition Summary */}
+<div className={`mb-6 p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+  <h3 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+    Daily Nutrition Summary
+  </h3>
+  {dailyNutrition ? (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Calories</span>
+          <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+            {Math.round(dailyNutrition.total_calories)} / {dailyNutrition.recommended_calories}
+          </span>
+        </div>
+        <div className={`h-2 rounded-full overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}>
+          <div 
+            className="h-full bg-blue-500" 
+            style={{ 
+              width: `${Math.min(
+                (dailyNutrition.total_calories / dailyNutrition.recommended_calories) * 100, 
+                100
+              )}%` 
+            }}
+          ></div>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Protein</span>
+          <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+            {dailyNutrition.protein.toFixed(1)}g / {dailyNutrition.protein_goal}g
+          </span>
+        </div>
+        <div className={`h-2 rounded-full overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}>
+          <div 
+            className="h-full bg-green-500" 
+            style={{ 
+              width: `${Math.min(
+                (dailyNutrition.protein / dailyNutrition.protein_goal) * 100, 
+                100
+              )}%` 
+            }}
+          ></div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Carbohydrates</div>
+          <div className={`text-xl font-bold ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+            {dailyNutrition.carbs.toFixed(1)}g
+          </div>
+          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            {dailyNutrition.carbs_percentage.toFixed(1)}% of calories
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Fats</div>
+          <div className={`text-xl font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+            {dailyNutrition.fat.toFixed(1)}g
+          </div>
+          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            {dailyNutrition.fats_percentage.toFixed(1)}% of calories
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+      {mealPlans.length === 0 ? 'No meals planned for this day.' : 'Calculating nutrition...'}
+    </p>
+  )}
+</div>
           {mealPlans.length === 0 ? (
-            <p className="text-gray-600">No meals planned for this day.</p>
+            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>No meals planned for this day.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {['breakfast', 'lunch', 'dinner', 'snack'].map((type) => (
-                <div key={type} className="bg-white rounded-lg shadow-md p-4">
-                  <h3 className="font-semibold capitalize mb-3 text-lg">{type}</h3>
+                <div key={type} className={`rounded-lg shadow-md p-4 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                  <h3 className={`font-semibold capitalize mb-3 text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>{type}</h3>
                   {mealPlans
-                    .filter(plan => plan.meal_type === type)
-                    .map(plan => (
-                      <div 
-                        key={plan.id} 
-                        className="mb-3 cursor-pointer transform transition-all hover:scale-105"
-                        onClick={() => setSelectedMealPlanRecipe({
-                          id: plan.recipe_id,
-                          source: plan.source
-                        })}
-                      >
-                        <div className="bg-gray-50 rounded-lg p-2">
-                          {plan.recipe?.image && (
-                            <img
-                              src={plan.recipe.source === 'user' 
-                                ? `http://localhost:5000${plan.recipe.image}`
-                                : plan.recipe.image}
-                              alt={plan.recipe.title}
-                              className="w-full h-32 object-cover rounded-lg mb-2"
-                            />
-                          )}
-                          <p className="font-medium text-sm text-gray-800">
-                            {plan.recipe?.title}
-                          </p>
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs text-gray-500">
-                              {plan.recipe?.source === 'user' 
-                                ? 'Your Recipe' 
-                                : 'Spoonacular'}
-                            </span>
-                            <button 
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                try {
-                                  await axios.delete(`/api/meal-plans/${plan.id}`, {
-                                    withCredentials: true
-                                  });
-                                  setMealPlans(prev => prev.filter(p => p.id !== plan.id));
-                                } catch (error) {
-                                  console.error('Error deleting meal plan:', error);
-                                }
-                              }}
-                              className="text-red-500 text-xs hover:text-red-700"
-                            >
-                              Remove
-                            </button>
+                      .filter(plan => plan.meal_type === type)
+                      .map(plan => (
+                        <div 
+                          key={plan.id} 
+                          className="mb-3 cursor-pointer transform transition-all hover:scale-105"
+                          onClick={() => setSelectedMealPlanRecipe({
+                            id: plan.recipe_id,
+                            source: plan.source
+                          })}
+                        >
+                          <div className={`rounded-lg p-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                            {plan.recipe?.image && (
+                              <img
+                                src={plan.recipe.image.startsWith('http') 
+                                  ? plan.recipe.image
+                                  : `http://localhost:5000${plan.recipe.image}`}
+                                alt={plan.recipe.title}
+                                className="w-full h-32 object-cover rounded-lg mb-2"
+                              />
+                            )}
+                            <p className={`font-medium text-sm ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                              {plan.recipe?.title}
+                            </p>
+                            <div className="mt-2 text-xs space-y-1">
+                              <div className="flex justify-between">
+                                <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Calories:</span>
+                                <span>
+                                  {plan.recipe?.calories ? Number(plan.recipe.calories).toFixed(0) : 'N/A'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className={darkMode ? 'text-green-400' : 'text-green-600'}>Protein:</span>
+                                <span>
+                                  {plan.recipe?.protein ? Number(plan.recipe.protein).toFixed(1) + 'g' : 'N/A'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className={darkMode ? 'text-yellow-400' : 'text-yellow-600'}>Carbs:</span>
+                                <span>
+                                  {plan.recipe?.carbs ? Number(plan.recipe.carbs).toFixed(1) + 'g' : 'N/A'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className={darkMode ? 'text-red-400' : 'text-red-600'}>Fat:</span>
+                                <span>
+                                  {plan.recipe?.fat ? Number(plan.recipe.fat).toFixed(1) + 'g' : 'N/A'}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {plan.recipe?.source === 'user' 
+                                  ? 'Your Recipe' 
+                                  : 'Spoonacular'}
+                              </span>
+                              <button 
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    await axios.delete(`/api/meal-plans/${plan.id}`, {
+                                      withCredentials: true
+                                    });
+                                    setMealPlans(prev => prev.filter(p => p.id !== plan.id));
+                                  } catch (error) {
+                                    console.error('Error deleting meal plan:', error);
+                                  }
+                                }}
+                                className={`text-xs ${darkMode ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-700'}`}
+                              >
+                                Remove
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                 </div>
               ))}
             </div>

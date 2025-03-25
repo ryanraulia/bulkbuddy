@@ -575,7 +575,7 @@ app.post('/api/meal-plans', async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-// Get meal plans
+// Get meal plans endpoint - updated with complete nutrition data handling
 app.get('/api/meal-plans', async (req, res) => {
   const token = req.cookies.jwt;
   if (!token) return res.status(401).json({ error: "Not authenticated" });
@@ -594,26 +594,80 @@ app.get('/api/meal-plans', async (req, res) => {
 
     const [mealPlans] = await db.promise().query(query, params);
 
-    // Enrich with recipe data
+    // Enrich with recipe data including nutrition
     const enrichedPlans = await Promise.all(
       mealPlans.map(async plan => {
         try {
           if (plan.source === 'spoonacular') {
-            const response = await axios.get(
-              `https://api.spoonacular.com/recipes/${plan.recipe_id}/information`,
-              { params: { apiKey: SPOONACULAR_API_KEY } }
-            );
-            return { ...plan, recipe: response.data };
+            // Fetch both basic info and nutrition data in parallel
+            const [infoResponse, nutritionResponse] = await Promise.all([
+              axios.get(
+                `https://api.spoonacular.com/recipes/${plan.recipe_id}/information`,
+                { params: { apiKey: SPOONACULAR_API_KEY } }
+              ),
+              axios.get(
+                `https://api.spoonacular.com/recipes/${plan.recipe_id}/nutritionWidget.json`,
+                { params: { apiKey: SPOONACULAR_API_KEY } }
+              ).catch(() => null) // Fallback if nutrition fails
+            ]);
+
+            const recipeInfo = infoResponse.data;
+            const nutrition = nutritionResponse?.data || {};
+
+            // Parse nutrition values
+            const parseNutrition = (value) => {
+              if (typeof value === 'string') {
+                return parseFloat(value.replace(/[^\d.]/g, '')) || 0;
+              }
+              return value || 0;
+            };
+
+            return {
+              ...plan,
+              recipe: {
+                ...recipeInfo,
+                source: 'spoonacular',
+                calories: parseNutrition(nutrition.calories),
+                protein: parseNutrition(nutrition.protein),
+                carbs: parseNutrition(nutrition.carbs),
+                fat: parseNutrition(nutrition.fat),
+                // Add image URL if not already present
+                image: recipeInfo.image || `https://spoonacular.com/recipeImages/${plan.recipe_id}-312x231.jpg`
+              }
+            };
           } else {
+            // Handle user recipes
+            // In the user recipe handling section of /api/meal-plans endpoint
             const [recipes] = await db.promise().query(
-              "SELECT * FROM recipes WHERE id = ?",
+              `SELECT r.*, 
+              CONCAT('${process.env.SERVER_URL || 'http://localhost:5000'}', r.image) as image,
+              u.name AS username
+              FROM recipes r
+              JOIN users u ON r.user_id = u.id
+              WHERE r.id = ?`,
               [plan.recipe_id]
             );
-            return { ...plan, recipe: recipes[0] };
+
+            if (recipes.length > 0) {
+              const recipe = recipes[0];
+              return {
+                ...plan,
+                recipe: {
+                  ...recipe,
+                  source: 'user',
+                  image: recipe.image || '/default-food.jpg',
+                  calories: Number(recipe.calories) || 0,
+                  protein: Number(recipe.protein) || 0,
+                  carbs: Number(recipe.carbs) || 0,
+                  fat: Number(recipe.fat) || 0
+                }
+              };
+            }
+            return plan;
           }
         } catch (error) {
           console.error("Error fetching recipe:", error);
-          return plan;
+          return plan; // Return basic plan if recipe fetch fails
         }
       })
     );
@@ -621,10 +675,89 @@ app.get('/api/meal-plans', async (req, res) => {
     res.json(enrichedPlans);
   } catch (error) {
     console.error("Meal plan fetch error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ 
+      error: "Internal server error",
+      details: error.message 
+    });
   }
 });
 
+// Add to server/index.js
+// Update the /api/meal-plans/nutrition endpoint
+app.get('/api/meal-plans/nutrition', async (req, res) => {
+  const token = req.cookies.jwt;
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { date } = req.query;
+
+    // Get meal plans for the date
+    const [mealPlans] = await db.promise().query(
+      "SELECT * FROM meal_plans WHERE user_id = ? AND date = ?",
+      [decoded.id, date]
+    );
+
+    let total = {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0
+    };
+  
+    // Process each meal
+    for (const plan of mealPlans) {
+      if (plan.source === 'spoonacular') {
+        const response = await axios.get(
+          `https://api.spoonacular.com/recipes/${plan.recipe_id}/nutritionWidget.json`,
+          { params: { apiKey: SPOONACULAR_API_KEY } }
+        );
+        const nutrition = response.data;
+        total.calories += parseFloat(nutrition.calories) || 0;
+        total.protein += parseFloat(nutrition.protein?.replace('g', '')) || 0;
+        total.carbs += parseFloat(nutrition.carbs?.replace('g', '')) || 0;
+        total.fat += parseFloat(nutrition.fat?.replace('g', '')) || 0;
+      } else {
+        const [recipes] = await db.promise().query(
+          "SELECT calories, protein, carbs, fat FROM recipes WHERE id = ?",
+          [plan.recipe_id]
+        );
+        if (recipes.length > 0) {
+          const recipe = recipes[0];
+          total.calories += parseFloat(recipe.calories) || 0; // Use actual calories
+          total.protein += parseFloat(recipe.protein) || 0;
+          total.carbs += parseFloat(recipe.carbs) || 0;
+          total.fat += parseFloat(recipe.fat) || 0;
+        }
+      }
+    }
+  
+    // Calculate percentages based on ACTUAL CALORIES
+    const caloriesFromProtein = total.protein * 4;
+    const caloriesFromCarbs = total.carbs * 4;
+    const caloriesFromFat = total.fat * 9;
+    const calculatedCalories = caloriesFromProtein + caloriesFromCarbs + caloriesFromFat;
+    
+    // But use the actual summed calories for total
+    const actualCalories = total.calories;
+  
+    const response = {
+      total_calories: actualCalories, // Use actual summed calories
+      protein: total.protein,
+      carbs: total.carbs,
+      fat: total.fat,
+      protein_percentage: (caloriesFromProtein / calculatedCalories) * 100 || 0,
+      carbs_percentage: (caloriesFromCarbs / calculatedCalories) * 100 || 0,
+      fats_percentage: (caloriesFromFat / calculatedCalories) * 100 || 0,
+      recommended_calories: 2000,
+      protein_goal: 56
+    };
+  
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 // Delete from meal plan
 app.delete('/api/meal-plans/:id', async (req, res) => {
   const token = req.cookies.jwt;
@@ -1099,6 +1232,13 @@ app.get('/api/user-recipe/:id', async (req, res) => {
 
     // Convert user recipe format to match Spoonacular's nutrition structure
     const userRecipe = recipes[0];
+    
+    // Calculate calories from macros
+    const proteinCal = userRecipe.protein * 4;
+    const fatCal = userRecipe.fat * 9;
+    const carbsCal = userRecipe.carbs * 4;
+    const totalCalFromMacros = proteinCal + fatCal + carbsCal;
+
     const formattedRecipe = {
       ...userRecipe,
       source: 'user',
@@ -1126,9 +1266,9 @@ app.get('/api/user-recipe/:id', async (req, res) => {
           { name: 'Calcium', amount: userRecipe.calcium, unit: 'mg' }
         ],
         caloricBreakdown: {
-          percentProtein: ((userRecipe.protein * 4) / userRecipe.calories * 100) || 0,
-          percentFat: ((userRecipe.fat * 9) / userRecipe.calories * 100) || 0,
-          percentCarbs: ((userRecipe.carbs * 4) / userRecipe.calories * 100) || 0
+          percentProtein: totalCalFromMacros ? (proteinCal / totalCalFromMacros * 100) : 0,
+          percentFat: totalCalFromMacros ? (fatCal / totalCalFromMacros * 100) : 0,
+          percentCarbs: totalCalFromMacros ? (carbsCal / totalCalFromMacros * 100) : 0
         }
       },
       extendedIngredients: userRecipe.ingredients?.split('\n').map(ing => ({ original: ing })) || [],
@@ -1142,7 +1282,6 @@ app.get('/api/user-recipe/:id', async (req, res) => {
     res.status(500).json({ error: 'Error fetching recipe' });
   }
 });
-
 // Add after existing endpoints in server/index.js
 
 // Get pending recipes
