@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaUtensils, FaCalculator, FaEnvelope, FaBookOpen, FaLightbulb, FaUser, FaSignOutAlt, FaMoon, FaSun } from 'react-icons/fa';
+import { FaUtensils, FaCalculator, FaEnvelope, FaBookOpen, FaLightbulb, FaUser, FaSignOutAlt, FaMoon, FaSun, FaUserShield } from 'react-icons/fa';
 import LoginButton from '../buttons/LoginButton';
 import SignUpButton from '../buttons/SignUpButton';
 import SubmitRecipeButton from '../buttons/SubmitRecipeButton';
@@ -72,7 +72,7 @@ export default function Header() {
   ];
 
   return (
-    <header className={`py-4 shadow-lg sticky top-0 z-50 ${darkMode ? 'bg-[#1F1F2E] text-[#E0E0E0]' : 'bg-[#F8F9FA] text-[#212529]'}`} role="banner">
+    <header className={`py-4 shadow-lg sticky top-0 z-50 ${darkMode ? 'bg-[#333333] text-[#E0E0E0]' : 'bg-[#F8F9FA] text-[#212529]'}`} role="banner">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
@@ -103,12 +103,17 @@ export default function Header() {
               ))}
               {user?.role === 'admin' && (
                 <li role="none">
-                  <Link 
-                    to="/admin" 
-                    className="flex items-center gap-2 bg-[#007BFF] hover:bg-[#0056b3] rounded-lg px-3 py-2 transition-colors duration-200 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <Link
+                    to="/admin"
+                    className={`flex items-center gap-2 ${
+                      darkMode ? 'hover:bg-[#1E1E1E]' : 'hover:bg-[#F0F0F0]'
+                    } rounded-lg px-3 py-2 transition-colors duration-200 ${
+                      darkMode ? 'text-[#FFFFFF]' : 'text-[#212529]'
+                    } hover:text-[#007BFF] focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     role="menuitem"
                   >
-                    Admin
+                    <FaUserShield className="text-[#007BFF] text-lg" aria-hidden="true" />
+                    <span>Admin</span>
                   </Link>
                 </li>
               )}
@@ -132,13 +137,17 @@ export default function Header() {
                   <span>{user.username || 'Profile'}</span>
                 </Link>
                 <button
-                  onClick={handleLogout}
-                  className={`flex items-center gap-2 ${darkMode ? 'bg-[#1E1E1E] hover:bg-[#2D2D2D]' : 'bg-[#FAFAFA] hover:bg-[#F0F0F0]'} text-[#212529] font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  aria-label="Log out of your account"
-                >
-                  <FaSignOutAlt aria-hidden="true" />
-                  <span>Logout</span>
-                </button>
+                onClick={handleLogout}
+                className={`flex items-center gap-2 
+                  ${darkMode ? 'bg-[#1E1E1E] hover:bg-[#2D2D2D] text-white' 
+                            : 'bg-[#FAFAFA] hover:bg-[#F0F0F0] text-black'} 
+                  font-medium py-2 px-4 rounded-lg transition-colors duration-200 
+                  focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                aria-label="Log out of your account"
+              >
+                Logout
+              </button>
+
               </div>
             ) : (
               <div className="flex items-center gap-3">

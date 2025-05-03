@@ -5,7 +5,11 @@ export default function Tips() {
   const { darkMode } = useTheme();
 
   return (
-    <div className={`container mx-auto px-6 py-12 ${darkMode ? 'bg-[#1E1E1E]' : 'bg-[#FAFAFA]'}`}>
+<div className={`container mx-auto px-6 py-12 
+  ${darkMode 
+    ? 'bg-gradient-to-b from-[#1A1A1A] via-[#333333] to-[#1A1A1A] text-[#E0E0E0]' 
+    : 'bg-gradient-to-b  from-gray-100 via-gray-50 to-gray-100 text-[#212529]'} 
+`}>
       <h1 className={`text-4xl font-extrabold text-center mb-6 ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>
         Bulking Tips & Nutrition Advice
       </h1>

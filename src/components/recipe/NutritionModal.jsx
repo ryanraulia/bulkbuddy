@@ -43,12 +43,14 @@ const NutritionModal = ({ recipe, onClose }) => {
     if (score >= 40) return darkMode ? 'text-yellow-300' : 'text-yellow-500';
     return darkMode ? 'text-red-400' : 'text-red-500';
   };
-// Update the health score calculation to use Spoonacular's healthScore when available
-const healthScore = recipe.source === 'spoonacular' 
-  ? recipe.healthScore  // Use Spoonacular's healthScore directly
-  : recipe.health_score !== undefined 
-    ? recipe.health_score 
-    : (recipe.very_healthy ? 95 : recipe.budget_friendly ? 85 : 75);
+
+  // Update the health score calculation to use Spoonacular's healthScore when available
+  const healthScore = recipe.source === 'spoonacular' 
+    ? recipe.healthScore  // Use Spoonacular's healthScore directly
+    : recipe.health_score !== undefined 
+      ? recipe.health_score 
+      : (recipe.very_healthy ? 95 : recipe.budget_friendly ? 85 : 75);
+
   // Update getDietaryTags function
   const getDietaryTags = () => {
     const tags = [];
@@ -166,33 +168,6 @@ const healthScore = recipe.source === 'spoonacular'
                         </div>
                       );
                     })}
-                  </div>
-                  
-                  {/* Caloric Distribution Pie Chart Approximation */}
-                  <div className="mt-6">
-                    <h4 className={`font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Caloric Distribution</h4>
-                    <div className="flex h-6 rounded-full overflow-hidden">
-                      <div 
-                        className="bg-blue-500" 
-                        style={{ width: `${recipe.nutrition.caloricBreakdown.percentProtein}%` }}
-                        title={`Protein: ${recipe.nutrition.caloricBreakdown.percentProtein?.toFixed(1)}%`}
-                      ></div>
-                      <div 
-                        className="bg-red-500" 
-                        style={{ width: `${recipe.nutrition.caloricBreakdown.percentFat}%` }}
-                        title={`Fat: ${recipe.nutrition.caloricBreakdown.percentFat?.toFixed(1)}%`}
-                      ></div>
-                      <div 
-                        className="bg-green-500" 
-                        style={{ width: `${recipe.nutrition.caloricBreakdown.percentCarbs}%` }}
-                        title={`Carbs: ${recipe.nutrition.caloricBreakdown.percentCarbs?.toFixed(1)}%`}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between text-xs mt-1">
-                      <span className="text-blue-500">Protein {recipe.nutrition.caloricBreakdown.percentProtein?.toFixed(1)}%</span>
-                      <span className="text-red-500">Fat {recipe.nutrition.caloricBreakdown.percentFat?.toFixed(1)}%</span>
-                      <span className="text-green-500">Carbs {recipe.nutrition.caloricBreakdown.percentCarbs?.toFixed(1)}%</span>
-                    </div>
                   </div>
                 </div>
               )}

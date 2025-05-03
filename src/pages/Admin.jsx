@@ -60,9 +60,9 @@ const AdminPage = () => {
   }
 
   return (
-    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#121212] via-[#181818] to-[#121212]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'} text-${darkMode ? '[#E0E0E0]' : '[#212529]'}`}>
+    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gradient-to-b from-[#1A1A1A] via-[#333333] to-[#1A1A1A]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'} text-${darkMode ? '[#E0E0E0]' : '[#212529]'}`}>
       <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-8">
+        <h1 className="text-4xl font-extrabold text-center text-blue-500 mb-8">
           Pending Recipe Approvals
         </h1>
 

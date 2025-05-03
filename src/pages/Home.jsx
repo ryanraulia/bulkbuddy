@@ -58,14 +58,18 @@ export default function Home() {
   };
 
   return (
-    <main className={`flex flex-col items-center justify-center min-h-screen ${darkMode ? 'bg-[#1F1F2E] text-[#E0E0E0]' : 'bg-[#FAFAFA] text-[#212529]'} py-16 px-4`}>
+<main className={`flex flex-col items-center justify-center min-h-screen 
+  ${darkMode 
+    ? 'bg-gradient-to-b from-[#1A1A1A] via-[#333333] to-[#1A1A1A] text-[#E0E0E0]' 
+    : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100 text-[#212529]'} 
+  py-16 px-4`}>
       {/* Hero Section */}
       <section className="text-center max-w-4xl mx-auto mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
           <span className={`${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>Power</span> Your <span className={`${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>Fitness</span> Journey
         </h1>
         <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-700'} max-w-3xl mx-auto`}>
-          Personalized meal plans designed to help you reach your fitness goals with precision nutrition
+          Personalised meal plans designed to help you reach your fitness goals with precision nutrition
         </p>
       </section>
 
@@ -86,7 +90,7 @@ export default function Home() {
           {/* Card Content */}
           <div className="p-6">
             <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Create your personalized meal plan by entering your daily calorie target, dietary preferences, and any ingredients to exclude below.
+              Create your personalised meal plan by entering your daily calorie target, dietary preferences, and any ingredients to exclude below.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -189,7 +193,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              title: "Personalized Plans",
+              title: "Personalised Plans",
               description: "Tailored meal plans based on your specific calorie needs and dietary preferences.",
               icon: "🎯"
             },

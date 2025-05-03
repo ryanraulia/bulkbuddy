@@ -1,3 +1,4 @@
+//The card on recipe page not the popup
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';

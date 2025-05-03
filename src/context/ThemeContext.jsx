@@ -11,6 +11,14 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    // Update body background color
+    if (darkMode) {
+      document.body.style.backgroundColor = '#2a2a2a';  // Dark grey
+      document.documentElement.style.backgroundColor = '#2a2a2a';
+    } else {
+      document.body.style.backgroundColor = '#ffffff';  // White
+      document.documentElement.style.backgroundColor = '#ffffff';
+    }
   }, [darkMode]);
 
   const toggleDarkMode = () => setDarkMode(!darkMode);

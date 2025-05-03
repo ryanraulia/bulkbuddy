@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
-import { ThemeProvider } from '../../context/ThemeContext'; // Corrected import path
+import { ThemeProvider } from '../../context/ThemeContext'; 
 
 export default function Layout({ children }) {
   return (

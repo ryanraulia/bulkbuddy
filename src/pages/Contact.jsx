@@ -6,7 +6,7 @@ export default function Contact() {
   const { darkMode } = useTheme();
   
   return (
-    <div className={`min-h-screen py-12 ${darkMode ? 'bg-gradient-to-b from-[#1E1E1E] via-[#2D2D2D] to-[#1E1E1E]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'}`}>
+    <div className={`min-h-screen py-12 ${darkMode ? 'bg-gradient-to-b from-[#1A1A1A] via-[#333333] to-[#1A1A1A]' : 'bg-gradient-to-b from-gray-100 via-gray-50 to-gray-100'}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className={`text-5xl font-extrabold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>Contact Us</h1>

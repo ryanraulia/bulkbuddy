@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTheme } from '../../context/ThemeContext';
-import { Search, Plus, X, Settings, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Plus, X, Info, ChevronDown, ChevronUp } from 'lucide-react';
 
 const FoodCalorieCalculator = () => {
   const [query, setQuery] = useState('');
@@ -15,7 +15,6 @@ const FoodCalorieCalculator = () => {
   const [expandedFood, setExpandedFood] = useState(null);
   const { darkMode } = useTheme();
 
-  // Suggestions with debounce
   useEffect(() => {
     const getSuggestions = async (input) => {
       try {
@@ -34,9 +33,7 @@ const FoodCalorieCalculator = () => {
     return () => clearTimeout(handler);
   }, [query]);
 
-  // Enhanced search with nutrients
-   // Updated searchFood function
-   const searchFood = async () => {
+  const searchFood = async () => {
     if (!query.trim()) return;
     
     setLoading(true);
@@ -46,11 +43,8 @@ const FoodCalorieCalculator = () => {
     try {
       const response = await axios.get('/api/food', { params: { q: query } });
       const foods = Array.isArray(response.data) ? response.data : [];
-      
-      // Remove manual defaults - trust the API response
       setResults(foods);
       
-      // Initialize servings with 100g default
       const initialServings = foods.reduce((acc, food) => ({
         ...acc,
         [food.fdcId]: 100
@@ -64,7 +58,7 @@ const FoodCalorieCalculator = () => {
       setLoading(false);
     }
   };
-  // Meal builder functions
+
   const addToMeal = (food) => {
     const existingIndex = meal.findIndex(item => item.fdcId === food.fdcId);
     
@@ -114,7 +108,6 @@ const FoodCalorieCalculator = () => {
     };
   };
 
-  const searchResultsTotal = calculateTotals(results);
   const mealTotal = calculateTotals(meal);
   const macroPercentages = calculateMacroPercentage();
 
@@ -122,30 +115,27 @@ const FoodCalorieCalculator = () => {
     if (nutrient === 'protein' && value > 20) return 'text-green-500';
     if (nutrient === 'fat' && value > 30) return 'text-yellow-500';
     if (nutrient === 'sugar' && value > 20) return 'text-red-500';
-    return darkMode ? 'text-gray-300' : 'text-gray-700';
+    return darkMode ? 'text-[#E0E0E0]' : 'text-gray-700';
   };
 
   return (
-    <div className={`max-w-4xl mx-auto rounded-lg shadow-lg mb-8 overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+    <div className={`max-w-4xl mx-auto rounded-lg shadow-lg mb-8 overflow-hidden ${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'}`}>
       {/* Header */}
-      <div className={`p-6 ${darkMode ? 'bg-gray-900' : 'bg-blue-50'}`}>
-        <h2 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'} flex items-center gap-2`}>
-          <div className="rounded-full p-1 bg-blue-600 text-white">
-            <Settings size={20} className="inline" />
-          </div>
+      <div className={`p-6 ${darkMode ? 'bg-[#2D2D2D]' : 'bg-blue-50'}`}>
+        <h2 className={`text-2xl font-bold ${darkMode ? 'text-[#E0E0E0]' : 'text-blue-600'} text-center`}>
           Food Nutrition Calculator
         </h2>
-        <p className={`mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        <p className={`mt-1 text-center ${darkMode ? 'text-[#E0E0E0] opacity-80' : 'text-gray-600'}`}>
           Search for foods, add them to your meal, and track nutritional values
         </p>
       </div>
       
       {/* Search Form */}
-      <div className={`p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+      <div className={`p-6 ${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} border-b ${darkMode ? 'border-[#3D3D3D]' : 'border-gray-200'}`}>
         <form onSubmit={handleSubmit} className="mb-4">
           <div className="flex gap-2">
             <div className="flex-1 relative">
-              <div className={`absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <div className={`absolute inset-y-0 left-0 flex items-center pl-3 ${darkMode ? 'text-[#E0E0E0] opacity-70' : 'text-gray-500'}`}>
                 <Search size={18} />
               </div>
               <input
@@ -153,11 +143,11 @@ const FoodCalorieCalculator = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search for food (e.g. Banana)"
-                className={`w-full p-3 pl-10 border rounded-lg ${darkMode ? 'border-gray-700 text-gray-200 bg-gray-700 focus:border-blue-500' : 'border-gray-300 text-gray-700 bg-white focus:border-blue-500'} focus:ring-2 focus:ring-blue-200 outline-none transition duration-200`}
+                className={`w-full p-3 pl-10 border rounded-lg ${darkMode ? 'border-[#3D3D3D] text-[#E0E0E0] bg-[#2D2D2D] focus:border-blue-500' : 'border-gray-300 text-gray-700 bg-white focus:border-blue-500'} focus:ring-2 focus:ring-blue-200 outline-none transition duration-200`}
                 disabled={loading}
               />
               {suggestions.length > 0 && (
-                <div className={`absolute z-10 w-full mt-1 rounded-lg border shadow-lg max-h-60 overflow-y-auto ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}>
+                <div className={`absolute z-10 w-full mt-1 rounded-lg border shadow-lg max-h-60 overflow-y-auto ${darkMode ? 'bg-[#3D3D3D] border-[#3D3D3D]' : 'bg-white border-gray-300'}`}>
                   {suggestions.map((item) => (
                     <div
                       key={item.id}
@@ -165,7 +155,7 @@ const FoodCalorieCalculator = () => {
                         setQuery(item.name);
                         setSuggestions([]);
                       }}
-                      className={`p-3 cursor-pointer ${darkMode ? 'hover:bg-gray-600 text-gray-200 border-b border-gray-600' : 'hover:bg-gray-50 text-gray-700 border-b border-gray-100'} last:border-b-0 transition duration-150`}
+                      className={`p-3 cursor-pointer ${darkMode ? 'hover:bg-[#4D4D4D] text-[#E0E0E0] border-b border-[#3D3D3D]' : 'hover:bg-gray-50 text-gray-700 border-b border-gray-100'} last:border-b-0 transition duration-150`}
                     >
                       {item.name}
                     </div>
@@ -188,7 +178,7 @@ const FoodCalorieCalculator = () => {
         </form>
 
         {error && (
-          <div className={`p-4 rounded-lg mb-4 flex items-center gap-2 ${darkMode ? 'bg-red-900/50 text-red-200' : 'bg-red-50 text-red-600'}`}>
+          <div className={`p-4 rounded-lg mb-4 flex items-center gap-2 ${darkMode ? 'bg-red-900/50 text-[#E0E0E0]' : 'bg-red-50 text-red-600'}`}>
             <Info size={18} className={darkMode ? 'text-red-300' : 'text-red-500'} />
             {error}
           </div>
@@ -197,38 +187,28 @@ const FoodCalorieCalculator = () => {
 
       {/* Results Area */}
       <div className="p-6">
-        {/* Search Results Summary - Removed the macros summary bar */}
-        {results.length > 0 && (
-          <div className={`mb-6 p-4 rounded-lg transition-all duration-200 ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
-            <h3 className={`font-semibold mb-3 flex items-center gap-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              <Search size={18} />
-              Search Results ({results.length})
-            </h3>
-          </div>
-        )}
-
         {/* Search Results */}
         {results.length > 0 ? (
           <div className="space-y-4 mb-8">
             {results.map((food) => (
               <div 
                 key={food.fdcId} 
-                className={`p-4 rounded-lg transition-all duration-200 ${darkMode ? 'bg-gray-700 hover:bg-gray-650' : 'bg-white hover:bg-gray-50'} shadow-sm border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}
+                className={`p-4 rounded-lg ${darkMode ? 'bg-[#3D3D3D] border-[#3D3D3D] text-[#E0E0E0]' : 'bg-white border-gray-200'} border shadow-sm`}
               >
                 <div className="flex justify-between">
-                  <h3 className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} mb-1`}>
+                  <h3 className={`font-semibold ${darkMode ? 'text-[#E0E0E0]' : 'text-gray-800'} mb-1`}>
                     {food.description}
                   </h3>
                   <button
                     onClick={() => expandedFood === food.fdcId ? setExpandedFood(null) : setExpandedFood(food.fdcId)}
-                    className={`p-1 rounded-full ${darkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
+                    className={`p-1 rounded-full ${darkMode ? 'text-[#E0E0E0] hover:bg-[#4D4D4D]' : 'text-gray-500 hover:bg-gray-100'}`}
                   >
                     {expandedFood === food.fdcId ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                   </button>
                 </div>
                 
                 <div className="mb-3 flex items-center gap-2">
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Serving Size:</span>
+                  <span className={`text-sm ${darkMode ? 'text-[#E0E0E0] opacity-80' : 'text-gray-500'}`}>Serving Size:</span>
                   <div className="relative w-24">
                     <input
                       type="number"
@@ -241,9 +221,9 @@ const FoodCalorieCalculator = () => {
                           [food.fdcId]: value
                         }));
                       }}
-                      className={`w-full p-1 rounded-md text-center ${darkMode ? 'bg-gray-600 text-gray-200 border-gray-500' : 'bg-white text-gray-700 border-gray-300'} border`}
+                      className={`w-full p-1 rounded-md text-center ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0] border-[#3D3D3D]' : 'bg-white text-gray-700 border-gray-300'} border`}
                     />
-                    <span className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>g</span>
+                    <span className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-[#E0E0E0] opacity-70' : 'text-gray-500'} text-sm`}>g</span>
                   </div>
                   <button
                     onClick={() => addToMeal(food)}
@@ -270,15 +250,15 @@ const FoodCalorieCalculator = () => {
                 </div>
                 
                 {expandedFood === food.fdcId && (
-                  <div className={`mt-3 pt-3 grid grid-cols-3 gap-2 ${darkMode ? 'border-t border-gray-600' : 'border-t border-gray-200'}`}>
+                  <div className={`mt-3 pt-3 grid grid-cols-3 gap-2 ${darkMode ? 'border-t border-[#3D3D3D]' : 'border-t border-gray-200'}`}>
                     <div className={`text-sm ${getNutrientColor('sugar', food.sugar)}`}>
-                      <span className={darkMode ? 'text-gray-400' : 'text-gray-500'}>Sugar:</span> {((food.sugar || 0) * (selectedServings[food.fdcId] / 100)).toFixed(1)}g
+                      <span className={darkMode ? 'text-[#E0E0E0] opacity-70' : 'text-gray-500'}>Sugar:</span> {((food.sugar || 0) * (selectedServings[food.fdcId] / 100)).toFixed(1)}g
                     </div>
-                    <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      <span className={darkMode ? 'text-gray-400' : 'text-gray-500'}>Fiber:</span> {((food.fiber || 0) * (selectedServings[food.fdcId] / 100)).toFixed(1)}g
+                    <div className={`text-sm ${darkMode ? 'text-[#E0E0E0]' : 'text-gray-700'}`}>
+                      <span className={darkMode ? 'text-[#E0E0E0] opacity-70' : 'text-gray-500'}>Fiber:</span> {((food.fiber || 0) * (selectedServings[food.fdcId] / 100)).toFixed(1)}g
                     </div>
-                    <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      <span className={darkMode ? 'text-gray-400' : 'text-gray-500'}>Sodium:</span> {((food.sodium || 0) * (selectedServings[food.fdcId] / 100)).toFixed(0)}mg
+                    <div className={`text-sm ${darkMode ? 'text-[#E0E0E0]' : 'text-gray-700'}`}>
+                      <span className={darkMode ? 'text-[#E0E0E0] opacity-70' : 'text-gray-500'}>Sodium:</span> {((food.sodium || 0) * (selectedServings[food.fdcId] / 100)).toFixed(0)}mg
                     </div>
                   </div>
                 )}
@@ -286,7 +266,7 @@ const FoodCalorieCalculator = () => {
             ))}
           </div>
         ) : !loading && query && (
-          <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'} rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+          <div className={`text-center py-8 ${darkMode ? 'text-[#E0E0E0] opacity-70' : 'text-gray-500'} rounded-lg ${darkMode ? 'bg-[#3D3D3D]' : 'bg-gray-50'}`}>
             <div className="mb-3">
               <Search size={40} className="mx-auto opacity-30" />
             </div>
@@ -296,18 +276,15 @@ const FoodCalorieCalculator = () => {
 
         {/* Meal Summary */}
         {meal.length > 0 && (
-          <div className={`mt-8 rounded-lg overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
-            <div className={`p-4 ${darkMode ? 'bg-gray-750' : 'bg-blue-100'} flex justify-between items-center`}>
-              <h3 className={`text-lg font-bold ${darkMode ? 'text-blue-400' : 'text-blue-700'} flex items-center gap-2`}>
-                <div className="p-1 rounded-full bg-blue-600 text-white">
-                  <Settings size={16} />
-                </div>
+          <div className={`mt-8 rounded-lg ${darkMode ? 'bg-[#3D3D3D]' : 'bg-blue-50'}`}>
+            <div className={`p-4 ${darkMode ? 'bg-[#2D2D2D]' : 'bg-blue-100'} flex justify-between items-center`}>
+              <h3 className={`text-lg font-bold ${darkMode ? 'text-[#E0E0E0]' : 'text-blue-700'}`}>
                 Your Meal ({meal.length} items)
               </h3>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowMealDetails(!showMealDetails)}
-                  className={`p-2 rounded ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-blue-200'} ${darkMode ? 'text-gray-300' : 'text-blue-700'}`}
+                  className={`p-2 rounded ${darkMode ? 'hover:bg-[#4D4D4D]' : 'hover:bg-blue-200'} ${darkMode ? 'text-[#E0E0E0]' : 'text-blue-700'}`}
                 >
                   {showMealDetails ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                 </button>
@@ -322,84 +299,75 @@ const FoodCalorieCalculator = () => {
             </div>
             
             <div className="p-4">
-              {/* Macro Summary + Visual */}
-              <div className="flex flex-col md:flex-row gap-4 mb-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
-                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
-                    <div className="text-xs uppercase opacity-60">Calories</div>
-                    <div className="text-xl font-bold">{mealTotal.calories.toFixed(0)}</div>
-                  </div>
-                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
-                    <div className="text-xs uppercase opacity-60">Protein</div>
-                    <div className="text-xl font-bold">{mealTotal.protein.toFixed(1)}g</div>
-                    <div className="text-xs opacity-70">{macroPercentages.protein.toFixed(0)}% of calories</div>
-                  </div>
-                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
-                    <div className="text-xs uppercase opacity-60">Carbs</div>
-                    <div className="text-xl font-bold">{mealTotal.carbs.toFixed(1)}g</div>
-                    <div className="text-xs opacity-70">{macroPercentages.carbs.toFixed(0)}% of calories</div>
-                  </div>
-                  <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
-                    <div className="text-xs uppercase opacity-60">Fat</div>
-                    <div className="text-xl font-bold">{mealTotal.fat.toFixed(1)}g</div>
-                    <div className="text-xs opacity-70">{macroPercentages.fat.toFixed(0)}% of calories</div>
-                  </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0]' : 'bg-white text-gray-700'} shadow-sm`}>
+                  <div className="text-xs uppercase opacity-60">Calories</div>
+                  <div className="text-xl font-bold">{mealTotal.calories.toFixed(0)}</div>
                 </div>
-                
-                {/* Macro distribution bar */}
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm w-full md:w-48 flex flex-col justify-center`}>
-                  <div className="text-xs uppercase mb-2 opacity-60 text-center">Macro Distribution</div>
-                  <div className="h-6 rounded-full overflow-hidden flex">
-                    <div 
-                      className="bg-green-500 h-full" 
-                      style={{width: `${macroPercentages.protein}%`}}
-                      title={`Protein: ${macroPercentages.protein.toFixed(1)}%`}
-                    ></div>
-                    <div 
-                      className="bg-blue-500 h-full" 
-                      style={{width: `${macroPercentages.carbs}%`}}
-                      title={`Carbs: ${macroPercentages.carbs.toFixed(1)}%`}
-                    ></div>
-                    <div 
-                      className="bg-yellow-500 h-full" 
-                      style={{width: `${macroPercentages.fat}%`}}
-                      title={`Fat: ${macroPercentages.fat.toFixed(1)}%`}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between text-xs mt-1">
-                    <span className="text-green-500">P</span>
-                    <span className="text-blue-500">C</span>
-                    <span className="text-yellow-500">F</span>
-                  </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0]' : 'bg-white text-gray-700'} shadow-sm`}>
+                  <div className="text-xs uppercase opacity-60">Protein</div>
+                  <div className="text-xl font-bold">{mealTotal.protein.toFixed(1)}g</div>
+                  <div className="text-xs opacity-70">{macroPercentages.protein.toFixed(0)}% of calories</div>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0]' : 'bg-white text-gray-700'} shadow-sm`}>
+                  <div className="text-xs uppercase opacity-60">Carbs</div>
+                  <div className="text-xl font-bold">{mealTotal.carbs.toFixed(1)}g</div>
+                  <div className="text-xs opacity-70">{macroPercentages.carbs.toFixed(0)}% of calories</div>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0]' : 'bg-white text-gray-700'} shadow-sm`}>
+                  <div className="text-xs uppercase opacity-60">Fat</div>
+                  <div className="text-xl font-bold">{mealTotal.fat.toFixed(1)}g</div>
+                  <div className="text-xs opacity-70">{macroPercentages.fat.toFixed(0)}% of calories</div>
                 </div>
               </div>
               
-              {/* Additional nutrients summary */}
+              <div className={`p-3 rounded-lg ${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} shadow-sm mb-4`}>
+                <div className="text-xs uppercase mb-2 opacity-60 text-center">Macro Distribution</div>
+                <div className="h-6 rounded-full overflow-hidden flex">
+                  <div 
+                    className="bg-green-500 h-full" 
+                    style={{width: `${macroPercentages.protein}%`}}
+                  ></div>
+                  <div 
+                    className="bg-blue-500 h-full" 
+                    style={{width: `${macroPercentages.carbs}%`}}
+                  ></div>
+                  <div 
+                    className="bg-yellow-500 h-full" 
+                    style={{width: `${macroPercentages.fat}%`}}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs mt-1">
+                  <span className="text-green-500">P</span>
+                  <span className="text-blue-500">C</span>
+                  <span className="text-yellow-500">F</span>
+                </div>
+              </div>
+              
               <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0]' : 'bg-white text-gray-700'} shadow-sm`}>
                   <div className="text-xs uppercase opacity-60">Sugar</div>
                   <div className={`text-lg font-bold ${getNutrientColor('sugar', mealTotal.sugar)}`}>{mealTotal.sugar.toFixed(1)}g</div>
                 </div>
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0]' : 'bg-white text-gray-700'} shadow-sm`}>
                   <div className="text-xs uppercase opacity-60">Fiber</div>
                   <div className="text-lg font-bold">{mealTotal.fiber.toFixed(1)}g</div>
                 </div>
-                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'} shadow-sm`}>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0]' : 'bg-white text-gray-700'} shadow-sm`}>
                   <div className="text-xs uppercase opacity-60">Sodium</div>
                   <div className="text-lg font-bold">{mealTotal.sodium.toFixed(0)}mg</div>
                 </div>
               </div>
               
-              {/* Meal Items */}
               {showMealDetails && (
                 <div className="mt-4">
-                  <div className={`text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Meal Items</div>
-                  <div className={`divide-y ${darkMode ? 'divide-gray-600' : 'divide-gray-200'}`}>
+                  <div className={`text-sm font-medium mb-2 ${darkMode ? 'text-[#E0E0E0]' : 'text-gray-600'}`}>Meal Items</div>
+                  <div className={`divide-y ${darkMode ? 'divide-[#3D3D3D]' : 'divide-gray-200'}`}>
                     {meal.map((food) => (
                       <div key={food.fdcId} className="py-2 flex justify-between items-center">
                         <div>
-                          <div className={darkMode ? 'text-gray-200' : 'text-gray-700'}>{food.description}</div>
-                          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <div className={darkMode ? 'text-[#E0E0E0]' : 'text-gray-700'}>{food.description}</div>
+                          <div className={`text-sm ${darkMode ? 'text-[#E0E0E0] opacity-80' : 'text-gray-500'}`}>
                             {selectedServings[food.fdcId] || 100}g - {((food.calories || 0) * (selectedServings[food.fdcId] / 100)).toFixed(0)} cal
                           </div>
                         </div>
@@ -416,13 +384,13 @@ const FoodCalorieCalculator = () => {
                                   [food.fdcId]: value
                                 }));
                               }}
-                              className={`w-full p-1 rounded-md text-center text-sm ${darkMode ? 'bg-gray-600 text-gray-200 border-gray-500' : 'bg-white text-gray-700 border-gray-300'} border`}
+                              className={`w-full p-1 rounded-md text-center text-sm ${darkMode ? 'bg-[#2D2D2D] text-[#E0E0E0] border-[#3D3D3D]' : 'bg-white text-gray-700 border-gray-300'} border`}
                             />
-                            <span className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs`}>g</span>
+                            <span className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-[#E0E0E0] opacity-70' : 'text-gray-500'} text-xs`}>g</span>
                           </div>
                           <button
                             onClick={() => removeFromMeal(food.fdcId)}
-                            className={`p-1 rounded-full ${darkMode ? 'text-gray-400 hover:bg-gray-600 hover:text-red-400' : 'text-gray-500 hover:bg-gray-100 hover:text-red-500'}`}
+                            className={`p-1 rounded-full ${darkMode ? 'text-[#E0E0E0] hover:bg-[#4D4D4D] hover:text-red-400' : 'text-gray-500 hover:bg-gray-100 hover:text-red-500'}`}
                           >
                             <X size={18} />
                           </button>
