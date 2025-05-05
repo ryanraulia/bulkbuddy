@@ -44,12 +44,19 @@ const NutritionModal = ({ recipe, onClose }) => {
     return darkMode ? 'text-red-400' : 'text-red-500';
   };
 
-  // Update the health score calculation to use Spoonacular's healthScore when available
-  const healthScore = recipe.source === 'spoonacular' 
-    ? recipe.healthScore  // Use Spoonacular's healthScore directly
-    : recipe.health_score !== undefined 
-      ? recipe.health_score 
-      : (recipe.very_healthy ? 95 : recipe.budget_friendly ? 85 : 75);
+  // Update the healthScore constant
+  const healthScore = (() => {
+    if (recipe.source === 'spoonacular' && typeof recipe.healthScore === 'number') {
+      return recipe.healthScore;
+    }
+    if (recipe.source === 'user' && typeof recipe.health_score === 'number') {
+      return recipe.health_score;
+    }
+    // Only use fallback if no valid health score exists
+    if (recipe.veryHealthy) return 95;
+    if (recipe.budget_friendly) return 85;
+    return 75;
+  })();
 
   // Update getDietaryTags function
   const getDietaryTags = () => {
@@ -142,7 +149,7 @@ const NutritionModal = ({ recipe, onClose }) => {
               {/* Macronutrient Breakdown */}
               {recipe.nutrition && (
                 <div className={`${darkMode ? 'bg-[#1E1E1E]' : 'bg-gray-100'} p-4 rounded-lg`}>
-                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-3`}>Macronutrient Breakdown</h3>
+                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'} mb-3`}>Macronutrient Breakdown of % Daily Needs</h3>
                   
                   {/* Macronutrient Bars */}
                   <div className="space-y-4">

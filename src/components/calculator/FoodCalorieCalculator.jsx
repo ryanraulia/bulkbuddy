@@ -19,7 +19,7 @@ const FoodCalorieCalculator = () => {
     const getSuggestions = async (input) => {
       try {
         const response = await axios.get('/api/food/suggestions', { params: { q: input } });
-        setSuggestions(response.data);
+        setSuggestions(response.data.slice(0, 4));
       } catch (err) {
         console.error('Suggestions error:', err);
       }

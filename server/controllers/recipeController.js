@@ -155,3 +155,91 @@ WHERE recipes.source = 'user'
     res.status(500).json({ error: 'Error searching recipes' });
   }
 };
+exports.getRandomRecipes = async (req, res) => {
+    try {
+      const response = await axios.get(
+        'https://api.spoonacular.com/recipes/random',
+        {
+          params: {
+            apiKey: process.env.SPOONACULAR_API_KEY,
+            number: 8,
+            tags: 'main course'
+          }
+        }
+      );
+  
+      const recipes = response.data.recipes.map(r => ({
+        ...r,
+        source: 'spoonacular'
+      }));
+  
+      res.json(recipes);
+    } catch (error) {
+      console.error("Random recipes error:", error.response?.data || error.message);
+      res.status(500).json({ error: 'Error fetching random recipes' });
+    }
+  };
+  exports.getUserRecipes = async (req, res) => {
+    try {
+      const [recipes] = await db.promise().query(
+        `SELECT recipes.id, recipes.user_id, recipes.title, recipes.image, 
+         recipes.calories, recipes.status, recipes.created_at, 
+         users.name AS username
+         FROM recipes 
+         JOIN users ON recipes.user_id = users.id
+         WHERE recipes.source = 'user' 
+           AND recipes.status = 'approved'
+         ORDER BY recipes.created_at DESC`
+      );
+  
+      const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+      const updatedRecipes = recipes.map(recipe => ({
+        ...recipe,
+        source: 'user',
+        image: recipe.image ? `${serverUrl}${recipe.image}` : '/default-food.jpg'
+      }));
+  
+      res.json(updatedRecipes);
+    } catch (error) {
+      console.error("Error fetching user recipes:", error);
+      res.status(500).json({ error: 'Error fetching user recipes' });
+    }
+  };
+  exports.getRecipeById = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const recipeInfo = await axios.get(
+        `https://api.spoonacular.com/recipes/${id}/information`,
+        {
+          params: {
+            apiKey: SPOONACULAR_API_KEY,
+            includeNutrition: true,
+          },
+        }
+      );
+  
+      const response = {
+        ...recipeInfo.data,
+        gluten_free: recipeInfo.data.glutenFree,
+        dairy_free: recipeInfo.data.dairyFree,
+        vegetarian: recipeInfo.data.vegetarian,
+        vegan: recipeInfo.data.vegan,
+        low_fodmap: recipeInfo.data.lowFodmap,
+        sustainable: recipeInfo.data.sustainable,
+        very_healthy: recipeInfo.data.veryHealthy,
+        healthScore: recipeInfo.data.healthScore, // Explicitly include healthScore
+        calories: recipeInfo.data.nutrition?.nutrients.find(
+          (n) => n.name === 'Calories'
+        )?.amount || 0,
+        source: 'spoonacular' // Add source identification
+      };
+  
+      res.json(response);
+    } catch (error) {
+      console.error('Error in /api/recipe:', error.response?.data || error.message);
+      res.status(500).json({
+        error: 'Error fetching recipe details',
+        details: error.response?.data || error.message,
+      });
+    }
+  };

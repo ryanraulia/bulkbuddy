@@ -63,7 +63,7 @@ export default function MealPlan() {
         }
 
         const recipePromises = mealIds.map(id =>
-          fetch(`http://localhost:5000/api/recipe/${id}`).then(res => res.json())
+          fetch(`http://localhost:5000/api/recipes/${id}`).then(res => res.json())
         );
 
         const recipeDetails = await Promise.all(recipePromises);

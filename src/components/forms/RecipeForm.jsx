@@ -7,8 +7,10 @@ const RecipeForm = ({ onClose }) => {
   const { darkMode } = useTheme(); // Get darkMode from ThemeContext
   const [formData, setFormData] = useState({
     title: '',
-    ingredients: [{ name: '', amount: '', unit: '' }],
     instructions: '',
+    ingredients: [{ name: '', amount: '', unit: '' }],
+    servings: 1,
+    healthScore: 0,
     calories: '',
     protein: '',
     fat: '',
@@ -37,17 +39,18 @@ const RecipeForm = ({ onClose }) => {
     sustainable: false,
     veryHealthy: false,
     budgetFriendly: false,
-    dietType: 'all',
-    cuisine: '',
-    mealType: '',
-    maxPrepTime: '',
     eggFree: false,
     peanutFree: false,
     soyFree: false,
     treeNutFree: false,
     shellfishFree: false,
+    dietType: 'all',
+    cuisine: '',
+    mealType: '',
+    maxPrepTime: '',
     image: null,
   });
+  
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -92,22 +95,30 @@ const RecipeForm = ({ onClose }) => {
     });
 
     try {
-      const response = await fetch('/api/recipes/submit', {
+      const response = await fetch('/api/user/recipes/submit', {
         method: 'POST',
         credentials: 'include',
         body: data,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Submission failed');
+    
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const result = await response.json();
+    
+        if (!response.ok) {
+          throw new Error(result.error || 'Submission failed');
+        }
+    
+        onClose();
+        navigate('/recipes');
+      } else {
+        const text = await response.text();
+        throw new Error(text || 'Unexpected response from server');
       }
-
-      onClose();
-      navigate('/recipes');
     } catch (err) {
       setError(err.message);
     }
+    
   };
 
   return (

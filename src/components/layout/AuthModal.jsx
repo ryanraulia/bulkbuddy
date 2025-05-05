@@ -32,7 +32,7 @@ export default function AuthModal({ isOpen, onClose, showLogin }) {
     }
 
     try {
-      const url = isLogin ? '/api/login' : '/api/signup';
+      const url = isLogin ? '/api/auth/login' : '/api/auth/signup';
       const body = isLogin 
         ? { email: formData.email, password: formData.password }
         : { name: formData.name, email: formData.email, password: formData.password };

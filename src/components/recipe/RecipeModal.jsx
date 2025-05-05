@@ -18,7 +18,7 @@ const RecipeModal = ({ recipeId, onClose }) => {
     const fetchRecipe = async () => {
       try {
         // First try fetching as user recipe
-        const response = await axios.get(`/api/user-recipe/${recipeId}`);
+        const response = await axios.get(`/api/user/recipes/view/${recipeId}`);
         if (response.data) {
           setRecipe({
             ...response.data,

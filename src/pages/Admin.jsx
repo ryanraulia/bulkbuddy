@@ -13,7 +13,7 @@ const AdminPage = () => {
   useEffect(() => {
     const fetchPendingRecipes = async () => {
       try {
-        const response = await axios.get('/api/admin/pending-recipes', {
+        const response = await axios.get('/api/admin/pending', {
           withCredentials: true
         });
         setPendingRecipes(response.data);
@@ -31,7 +31,7 @@ const AdminPage = () => {
 
   const handleApprove = async (recipeId) => {
     try {
-      await axios.put(`/api/admin/approve-recipe/${recipeId}`, {}, {
+      await axios.put(`/api/admin/approve/${recipeId}`, {}, {
         withCredentials: true
       });
       setPendingRecipes(pendingRecipes.filter(recipe => recipe.id !== recipeId));
@@ -42,7 +42,7 @@ const AdminPage = () => {
 
   const handleReject = async (recipeId) => {
     try {
-      await axios.delete(`/api/admin/reject-recipe/${recipeId}`, {
+      await axios.delete(`/api/admin/reject/${recipeId}`, {
         withCredentials: true
       });
       setPendingRecipes(pendingRecipes.filter(recipe => recipe.id !== recipeId));

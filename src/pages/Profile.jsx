@@ -27,7 +27,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchUserAndRecipes = async () => {
       try {
-        const response = await fetch('/api/me', { credentials: 'include' });
+        const response = await fetch('/api/auth/me', { credentials: 'include' });
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
@@ -35,10 +35,14 @@ export default function Profile() {
             name: userData.name,
             bio: userData.bio || '',
             location: userData.location || '',
-            website: userData.website || ''
+            website: userData.website
+              ? userData.website.match(/^https?:\/\//i)
+                ? userData.website
+                : `https://${userData.website}`
+              : ''
           });
 
-          const recipesResponse = await fetch('/api/users/recipes', { 
+          const recipesResponse = await fetch('/api/user/recipes/user-specific', { 
             credentials: 'include' 
           });
           if (recipesResponse.ok) {
@@ -110,7 +114,7 @@ export default function Profile() {
     }
 
     try {
-      const response = await fetch('/api/profile/update', {
+      const response = await fetch('/api/auth/profile/update', {
         method: 'PUT',
         body: formDataToSend,
         credentials: 'include'
@@ -133,6 +137,17 @@ export default function Profile() {
 
   const handleFileChange = (e) => {
     setProfilePicture(e.target.files[0]);
+  };
+
+  const handleDeleteRecipe = async (recipeId) => {
+    try {
+await axios.delete(`/api/user/recipes/delete/${recipeId}`, {        withCredentials: true
+      });
+      setUserRecipes((recipes) => recipes.filter((r) => r.id !== recipeId));
+    } catch (err) {
+      console.error('Error deleting recipe:', err);
+      setError('Failed to delete recipe');
+    }
   };
 
   if (!user) return <p>Loading profile...</p>;
@@ -312,14 +327,14 @@ export default function Profile() {
               <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>No recipes submitted yet.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {userRecipes.map(recipe => (
-                  <div 
+                {userRecipes.map((recipe) => (
+                  <div
                     key={recipe.id}
                     className={`rounded-lg shadow-md overflow-hidden ${darkMode ? 'bg-[#2D2D2D]' : 'bg-gray-100'}`}
                   >
                     {recipe.image && (
                       <img
-                        src={recipe.image.startsWith('/uploads') 
+                        src={recipe.image.startsWith('/uploads')
                           ? `http://localhost:5000${recipe.image}`
                           : recipe.image}
                         alt={recipe.title}
@@ -327,21 +342,17 @@ export default function Profile() {
                       />
                     )}
                     <div className="p-4">
-                      <h3 className={`font-semibold text-lg mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{recipe.title}</h3>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {new Date(recipe.created_at).toLocaleDateString()}
-                        </span>
-                        <span className={`px-3 py-1 rounded-full text-sm ${
-                          recipe.status === 'approved' 
-                            ? darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800'
-                            : darkMode ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {recipe.status}
-                        </span>
-                      </div>
-                      <div className={`mt-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Submitted by: {recipe.username}
+                      <h3 className={`font-semibold text-lg mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {recipe.title}
+                      </h3>
+                      {/* Add metadata here if needed */}
+                      <div className="flex justify-end mt-4">
+                        <button
+                          onClick={() => handleDeleteRecipe(recipe.id)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>

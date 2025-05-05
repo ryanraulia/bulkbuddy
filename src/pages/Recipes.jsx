@@ -69,9 +69,23 @@ export default function Recipes() {
     navigate(`/search?${params.toString()}`);
   };
 
-  const handleDelete = (deletedId) => {
-    setUserRecipes(prev => prev.filter(r => r.id !== deletedId));
-    setRandomRecipes(prev => prev.filter(r => r.id !== deletedId));
+  const handleDelete = async (deletedId) => {
+    try {
+      // Choose the correct backend route
+      const url = user.role === 'admin'
+        ? `/api/admin/recipes/${deletedId}` // Admin delete route
+        : `/api/user/recipes/delete/${deletedId}`; // User delete route
+
+      // 1) Actually delete it on the server
+      await axios.delete(url, { withCredentials: true });
+
+      // 2) Then remove it from both lists in the UI
+      setUserRecipes((prev) => prev.filter((r) => r.id !== deletedId));
+      setRandomRecipes((prev) => prev.filter((r) => r.id !== deletedId));
+    } catch (err) {
+      console.error('Error deleting recipe:', err.response?.data?.error || err.message);
+      alert('Delete failed: ' + (err.response?.data?.error || err.message));
+    }
   };
 
   const handleAddRecipe = () => {

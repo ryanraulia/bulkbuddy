@@ -2,21 +2,16 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import axios from 'axios';
 
 const RecipeCard = ({ recipe, onClick, onDelete }) => {
   const { user } = useAuth();
   const { darkMode } = useTheme(); // Get darkMode from ThemeContext
   
-  const handleDelete = async (e) => {
+  const handleDelete = (e) => {
     e.stopPropagation();
     if (window.confirm('Permanently delete this recipe?')) {
-      try {
-        await axios.delete(`/api/recipes/${recipe.id}`, { withCredentials: true });
-        onDelete(recipe.id);
-      } catch (err) {
-        console.error('Delete failed:', err.response?.data?.error || err.message);
-      }
+      // Just tell the parent which ID to delete
+      onDelete(recipe.id);
     }
   };
 

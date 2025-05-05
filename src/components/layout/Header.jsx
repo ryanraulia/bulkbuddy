@@ -36,7 +36,7 @@ export default function Header() {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('/api/me', {
+      const response = await fetch('/api/auth/me', {
         credentials: 'include'
       });
       if (response.ok) {
@@ -52,7 +52,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/logout', {
+      await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include'
       });
