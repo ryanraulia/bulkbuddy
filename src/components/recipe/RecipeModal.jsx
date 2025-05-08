@@ -13,12 +13,15 @@ const RecipeModal = ({ recipeId, onClose }) => {
   const [mealDate, setMealDate] = useState(new Date().toISOString().split('T')[0]); // Default to today's date
   const [mealType, setMealType] = useState('dinner');
   const { darkMode } = useTheme(); // Use ThemeContext
+  const [error, setError] = useState(null);
+
+
 
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        // First try fetching as user recipe
-        const response = await axios.get(`/api/user/recipes/view/${recipeId}`);
+        // Corrected endpoint for user recipes
+        const response = await axios.get(`/api/user/recipes/${recipeId}`, { withCredentials: true });
         if (response.data) {
           setRecipe({
             ...response.data,
@@ -276,12 +279,11 @@ const RecipeModal = ({ recipeId, onClose }) => {
               )}
 
               {activeTab === 'instructions' && (
-                <div
-                  className={`prose ${
-                    darkMode ? 'prose-invert' : ''
-                  } max-w-none prose-lg`}
-                >
-                  <div dangerouslySetInnerHTML={{ __html: recipe.instructions }} />
+                <div className={`prose ${darkMode ? 'prose-invert' : ''} max-w-none prose-lg`}>
+                  {recipe.source === 'user'
+                    ? recipe.instructions.split('\n').map((line, i) => <p key={i}>{line}</p>) // Render plain text as paragraphs
+                    : <div dangerouslySetInnerHTML={{ __html: recipe.instructions }} /> // Render HTML for Spoonacular recipes
+                  }
                 </div>
               )}
             </div>
@@ -381,7 +383,7 @@ const RecipeModal = ({ recipeId, onClose }) => {
 
                         try {
                           await axios.post(
-                            '/api/meal-plans',
+                            '/api/custom-mealplan',
                             {
                               recipeId: recipe.id,
                               source: recipe.source,

@@ -5,7 +5,7 @@ const {
   getMealPlans,
   getMealPlanNutrition,
   deleteMealPlan
-} = require('../controllers/mealPlanController');
+} = require('../controllers/customMealController');
 const { requireAuth } = require('../middleware/authMiddleware');
 
 router.post('/', requireAuth, addToMealPlan);

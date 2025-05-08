@@ -63,7 +63,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchMealPlans = async () => {
       try {
-        const response = await axios.get(`/api/meal-plans?startDate=${selectedDate}&endDate=${selectedDate}`, {
+        const response = await axios.get(`/api/custom-mealplan?startDate=${selectedDate}&endDate=${selectedDate}`, {
           withCredentials: true
         });
         setMealPlans(response.data);
@@ -77,7 +77,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchDailyNutrition = async () => {
       try {
-        const response = await axios.get(`/api/meal-plans/nutrition?date=${selectedDate}`, {
+        const response = await axios.get(`/api/custom-mealplan/nutrition?date=${selectedDate}`, {
           withCredentials: true
         });
         setDailyNutrition(response.data);
@@ -507,7 +507,7 @@ await axios.delete(`/api/user/recipes/delete/${recipeId}`, {        withCredenti
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   try {
-                                    await axios.delete(`/api/meal-plans/${plan.id}`, {
+                                    await axios.delete(`/api/custom-mealplan/${plan.id}`, {
                                       withCredentials: true
                                     });
                                     setMealPlans(prev => prev.filter(p => p.id !== plan.id));

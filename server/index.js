@@ -12,16 +12,14 @@ const { requireAuth, requireAdmin } = require('./middleware/authMiddleware');
 // Modularized imports
 const transporter = require('./config/email');
 const recipeRoutes       = require('./routes/recipeRoutes');
-const mealPlanRoutes     = require('./routes/mealPlanRoutes');
 const userRecipeRoutes   = require('./routes/userRecipeRoutes');
 const adminRecipeRoutes  = require('./routes/adminRecipeRoutes');
 const foodRoutes         = require('./routes/foodRoutes');
 const MealGeneratorRoutes = require('./routes/MealGeneratorRoutes');
 const multer             = require('multer');
-
+const customMealRoutes = require('./routes/customMealRoutes.js');
 // Initialize app
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Built-in middleware
 app.use(express.json());
@@ -50,7 +48,7 @@ app.use('/uploads/profiles', express.static(UPLOAD_PROFILE_DIR));
 // API routes
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/auth',    require('./routes/authRoutes'));
-app.use('/api/meal-plans',     mealPlanRoutes);
+app.use('/api/custom-mealplan',     customMealRoutes);
 app.use('/api/admin',          adminRecipeRoutes);
 app.use('/api/recipe',         recipeRoutes);
 app.use('/api/recipes',        recipeRoutes);
@@ -79,7 +77,13 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+// Export the app for testing
+module.exports = app;
+
+// Start the server only if not in a test environment
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}

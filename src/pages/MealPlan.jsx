@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import NutritionModal from '../components/recipe/NutritionModal';
+import RecipeModal from '../components/recipe/RecipeModal';
 import { useTheme } from '../context/ThemeContext';
 
 export default function MealPlan() {
@@ -170,8 +171,14 @@ export default function MealPlan() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recipes.map((recipe, index) => (
-            <div key={recipe.id} className={`${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} p-6 rounded-lg shadow-lg hover:shadow-2xl transition`}>
-              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>{getMealType(recipe, index)}</h3>
+            <div
+              key={recipe.id}
+              onClick={() => setSelectedRecipe(recipe)} // Open RecipeModal on click
+              className={`${darkMode ? 'bg-[#2D2D2D]' : 'bg-white'} p-6 rounded-lg shadow-lg hover:shadow-2xl transition cursor-pointer`}
+            >
+              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>
+                {getMealType(recipe, index)}
+              </h3>
               <div className="space-y-3">
                 {recipe.image && (
                   <img
@@ -180,7 +187,9 @@ export default function MealPlan() {
                     className="w-full h-48 object-cover rounded-lg"
                   />
                 )}
-                <h4 className={`text-lg font-semibold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>{recipe.title}</h4>
+                <h4 className={`text-lg font-semibold ${darkMode ? 'text-blue-400' : 'text-[#007BFF]'}`}>
+                  {recipe.title}
+                </h4>
                 <div className="flex items-center space-x-2">
                   <span className="font-medium">Calories:</span>
                   <span>{Math.round(recipe.calories)} cal</span>
@@ -190,13 +199,21 @@ export default function MealPlan() {
                     <h5 className="font-medium mb-2">Ingredients:</h5>
                     <ul className="list-disc ml-5 space-y-1">
                       {recipe.extendedIngredients.map((ingredient, i) => (
-                        <li key={i} className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{ingredient.original}</li>
+                        <li key={i} className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {ingredient.original}
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
                 <button
-                  onClick={() => setSelectedRecipe(recipe)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the card click
+                    setSelectedRecipe({
+                      ...recipe,
+                      showNutrition: true, // Indicate that NutritionModal should open
+                    });
+                  }}
                   className={`mt-2 w-full ${darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#007BFF] hover:bg-[#0056b3]'} text-white py-2 rounded-lg transition-colors font-medium`}
                 >
                   Show Nutrition Details
@@ -207,10 +224,17 @@ export default function MealPlan() {
         </div>
 
         {selectedRecipe && (
-          <NutritionModal
-            recipe={selectedRecipe}
-            onClose={() => setSelectedRecipe(null)}
-          />
+          selectedRecipe.showNutrition ? (
+            <NutritionModal
+              recipe={selectedRecipe}
+              onClose={() => setSelectedRecipe(null)}
+            />
+          ) : (
+            <RecipeModal
+              recipeId={selectedRecipe.id}
+              onClose={() => setSelectedRecipe(null)}
+            />
+          )
         )}
       </div>
     </div>
